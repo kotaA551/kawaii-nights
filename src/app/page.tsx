@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { Shop, Category } from "@/lib/types";
 import shopsData from "@/data/shops.json";
 import ShopCard from "@/components/ShopCard";

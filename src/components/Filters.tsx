@@ -1,13 +1,11 @@
 'use client'
 import type { Category } from '@/lib/types'
-import { useId } from 'react'
 
 
 export function Filters(
 { q, setQ, cats, setCats, area, setArea }:
 { q: string, setQ: (v:string)=>void, cats: Category[], setCats: (v:Category[])=>void, area: string, setArea: (v:string)=>void }
 ){
-const id = useId()
 const toggle = (c: Category) => setCats(
 cats.includes(c) ? cats.filter(x=>x!==c) : [...cats, c]
 )

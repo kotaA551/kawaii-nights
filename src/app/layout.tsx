@@ -1,3 +1,4 @@
+import Link from "next/link";
 import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
 export const metadata = { title: "Kawaii Nights" };
@@ -9,9 +10,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Header */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-zinc-200">
           <div className="mx-auto max-w-screen-xl px-4 h-14 flex items-center gap-3">
-            <a href="/" className="font-black text-pink-600 tracking-wide">
+            <Link href="/" className="font-black text-pink-600 tracking-wide">
               Kawaii Nights
-            </a>
+            </Link>
             <nav className="ml-auto flex items-center gap-4 text-sm">
               <a className="hover:text-pink-600" href="#recommend">Recommended</a>
               <a className="hover:text-pink-600" href="#videos">Social Videos</a>
