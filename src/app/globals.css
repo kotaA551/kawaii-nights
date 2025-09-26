@@ -1,26 +1,74 @@
+/* ✅ v4 推奨の書き方 */
 @import "tailwindcss";
+@reference "tailwindcss";
 
+/* Base tweaks */
+@layer base {
+  h1, h2, h3 { @apply font-black tracking-tight; }
+}
+
+/* Pills & card look shared */
+@layer components {
+  .pill { @apply inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-sm text-pink-700 hover:bg-pink-100; }
+  .pill-active { @apply bg-pink-600 text-white border-transparent; }
+  .k-card { @apply rounded-2xl bg-white shadow-sm border border-zinc-200; }
+  .section { @apply mt-10; }
+}
+
+/* Scroll snap rows (like the sliders) */
+.snap-row { scroll-snap-type: x mandatory; }
+.snap-item { scroll-snap-align: start; }
+
+/* === Theme tokens === */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-from: #fff1f6;       /* pastel */
+  --bg-to:   #fde9ff;
+  --text:    #18181b;
+  --card:    #ffffff;
+  --border:  #e5e7eb;
+  --pill-bg: #ffe4ef;
+  --pill-tx: #be185d;
+
+  /* category chips (light) */
+  --chip-concafe: #ffb6c1;
+  --chip-girlsbar: #aeeeee;
+  --chip-host: #c9a0dc;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Neon mode */
+html[data-theme="neon"] {
+  --bg-from: #cacafa;
+  --bg-to:   #4c4181;
+  --text:    #414141;
+  --card:    #494994;
+  --border:  #27272a;
+  --pill-bg: rgb(101, 105, 161);
+  --pill-tx: #ffffff;
+
+  --chip-concafe: #ff2da1;   /* neon pink */
+  --chip-girlsbar: #27f3e0;  /* neon cyan */
+  --chip-host: #a879ff;      /* neon violet */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Apply tokens */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: linear-gradient(180deg, var(--bg-from), var(--bg-to));
 }
+
+/* override component look to tokens */
+.k-card { background: var(--card); border-color: var(--border); }
+.pill {
+  background: var(--pill-bg);
+  color: var(--pill-tx);
+  border-color: var(--border);
+}
+
+/* category-specific chips (used in lists/cards) */
+.chip-concafe { background: color-mix(in oklab, var(--chip-concafe) 25%, transparent); color: #7a0446; }
+.chip-girlsbar { background: color-mix(in oklab, var(--chip-girlsbar) 22%, transparent); color: #035a56; }
+.chip-host { background: color-mix(in oklab, var(--chip-host) 22%, transparent); color: #4c2d83; }
+
+html[data-theme="neon"] .chip-concafe { background: color-mix(in oklab, var(--chip-concafe) 22%, transparent); color: #fff; }
+html[data-theme="neon"] .chip-girlsbar { background: color-mix(in oklab, var(--chip-girlsbar) 18%, transparent); color: #001616; }
+html[data-theme="neon"] .chip-host { background: color-mix(in oklab, var(--chip-host) 18%, transparent); color: #0b021a; }
