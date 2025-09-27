@@ -4,9 +4,20 @@ import { useMemo, useState } from "react";
 import type { Shop, Category } from "@/lib/types";
 import shopsData from "@/data/shops.json";
 import ShopCard from "@/components/ShopCard";
+import Carousel from "@/components/Carousel";
+
 
 const CATS: Category[] = ["concafe", "girlsbar", "hostclub"];
 const AREAS = ["all", "tokyo", "osaka", "kyoto", "fukuoka"] as const;
+
+type Review = { id: string; title: string; snippet: string };
+
+const reviews: Review[] = [
+  { id: "r1", title: "Nadeshiko (Shinjuku)", snippet: "Had such a fun time today! The interior was super cute and Insta-worthy ♡" },
+  { id: "r2", title: "Maid Dream Akiba", snippet: "Drinks were nice and the vibe was cozy ♡" },
+  { id: "r3", title: "Osaka Host Club Etoile", snippet: "Great service and elegant interior." },
+];
+
 
 export default function HomePage() {
   const [q, setQ] = useState("");
@@ -39,7 +50,7 @@ export default function HomePage() {
           Discover Japan&apos;s Cute Nightlife
         </h1>
         <p className="mt-3 text-zinc-600">
-          ConCafes • Girls Bars • Host Clubs — pastel, safe, transparent.
+          ConCafes • Girls Bars • Host Clubs
         </p>
 
         {/* Search + filters */}
@@ -88,15 +99,19 @@ export default function HomePage() {
       {/* Recommended slider */}
       <section id="recommend" className="section">
         <h2 className="mb-4 text-xl">Recommended</h2>
-        <div className="k-card p-4 overflow-x-auto snap-row">
-          <div className="flex gap-4">
-            {shops.slice(0, 10).map((s) => (
-              <div key={s.id} className="w-60 shrink-0 snap-item">
-                <ShopCard shop={s} />
-              </div>
-            ))}
-          </div>
-        </div>
+
+        <Carousel
+          autoplay={3000}
+          // 1枚の最小幅: モバイル80% / md 50% / lg 33%
+          slideClassName="min-w-[80%] md:min-w-[50%] lg:min-w-[33%]"
+          className="k-card p-4"
+        >
+          {shops.slice(0, 12).map((s) => (
+            <div key={s.id} className="h-full">
+              <ShopCard shop={s} />
+            </div>
+          ))}
+        </Carousel>
       </section>
 
       {/* Search results */}
@@ -117,34 +132,28 @@ export default function HomePage() {
       {/* Social videos (dummy UI) */}
       <section id="videos" className="section">
         <h2 className="mb-4 text-xl">Social Videos</h2>
-        <div className="k-card p-4 overflow-x-auto snap-row">
-          <div className="flex gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="snap-item w-44 shrink-0">
-                <div className="aspect-[9/16] rounded-2xl bg-zinc-200" />
-                <p className="mt-2 text-sm line-clamp-2">Cute intro video #{i + 1}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+
+        <Carousel autoplay={3000} slideClassName="min-w-[70%] md:min-w-[45%] lg:min-w-[28%]" className="k-card p-4">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="rounded-2xl bg-zinc-200/70 aspect-[3/4] w-full overflow-hidden" />
+          ))}
+        </Carousel>
       </section>
 
-      {/* New reviews (dummy UI) */}
+
+            {/* New reviews (dummy UI) */}
       <section id="reviews" className="section">
         <h2 className="mb-4 text-xl">New Reviews</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="k-card p-5">
-              <div className="font-semibold text-pink-700">Nadeshiko (Shinjuku)</div>
-              <div className="mt-2 text-sm text-zinc-600">
-                Had such a fun time today! The interior was super cute and Insta-worthy ♡
-              </div>
-              <div className="mt-3">
-                <button className="pill pill-active">Read More</button>
-              </div>
+
+        <Carousel autoplay={3000} slideClassName="min-w-[85%] md:min-w-[60%] lg:min-w-[45%]" className="k-card p-4">
+          {reviews.map((r) => (
+            <div key={r.id} className="rounded-2xl border border-zinc-200 bg-white p-4">
+              <h3 className="font-bold text-pink-600">{r.title}</h3>
+              <p className="mt-2 text-sm text-zinc-700">{r.snippet}</p>
+              <button className="mt-3 pill">Read More</button>
             </div>
           ))}
-        </div>
+        </Carousel>
       </section>
     </>
   );

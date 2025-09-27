@@ -39,7 +39,7 @@
 html[data-theme="neon"] {
   --bg-from: #cacafa;
   --bg-to:   #4c4181;
-  --text:    #414141;
+  --text:    #f5f5f5;
   --card:    #494994;
   --border:  #27272a;
   --pill-bg: rgb(101, 105, 161);
