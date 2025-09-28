@@ -1,0 +1,77 @@
+// src/i18n/messages.ts
+export type Locale = "en" | "zh" | "ko";
+
+export const messages = {
+  en: {
+    brand: "Kawaii Nights",
+    heroTitle: "Discover Japan's Cute Nightlife",
+    heroSub: "ConCafes • Girls Bars • Host Clubs",
+    searchPlaceholder: "Search (name / concept)",
+    recommended: "Recommended",
+    results: "Search Results",
+    videos: "Social Videos",
+    reviews: "New Reviews",
+    map: "Map",
+    empty: "No results.",
+    areas: {
+      all: "All Areas",
+      tokyo: "Tokyo",
+      osaka: "Osaka",
+      kyoto: "Kyoto",
+      fukuoka: "Fukuoka",
+    },
+    categories: {
+      concafe: "ConCafe",
+      girlsbar: "Girls Bar",
+      hostclub: "Host Club",
+    },
+  },
+  zh: {
+    brand: "Kawaii Nights",
+    heroTitle: "探索日本可爱夜生活",
+    heroSub: "女仆咖啡店 • 女郎酒吧 • 主人俱乐部",
+    searchPlaceholder: "搜索（名称 / 概念）",
+    recommended: "推荐",
+    results: "搜索结果",
+    videos: "社交视频",
+    reviews: "最新评论",
+    map: "地图",
+    empty: "没有匹配的结果。",
+    areas: {
+      all: "全部地区",
+      tokyo: "东京",
+      osaka: "大阪",
+      kyoto: "京都",
+      fukuoka: "福冈",
+    },
+    categories: {
+      concafe: "女仆咖啡",
+      girlsbar: "女郎酒吧",
+      hostclub: "男公关俱乐部",
+    },
+  },
+  ko: {
+    brand: "Kawaii Nights",
+    heroTitle: "일본의 귀여운 나이트라이프를 발견하세요",
+    heroSub: "콘카페 • 걸스바 • 호스트클럽",
+    searchPlaceholder: "검색 (이름 / 콘셉트)",
+    recommended: "추천",
+    results: "검색 결과",
+    videos: "소셜 비디오",
+    reviews: "새 리뷰",
+    map: "지도",
+    empty: "검색 결과가 없습니다.",
+    areas: {
+      all: "전체 지역",
+      tokyo: "도쿄",
+      osaka: "오사카",
+      kyoto: "교토",
+      fukuoka: "후쿠오카",
+    },
+    categories: {
+      concafe: "콘카페",
+      girlsbar: "걸스바",
+      hostclub: "호스트클럽",
+    },
+  },
+} as const;

@@ -1,17 +1,18 @@
-import "./globals.css";
+import "../globals.css";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 
-export const metadata: Metadata = {
-  title: "Kawaii Nights",
-  icons: {
-    icon: "/favicon.ico",
-  },
-};
+export const metadata: Metadata = { title: "Kawaii Nights" };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: { locale: string };
+}) {
   return (
-    <html lang="en">
+    <html lang={params.locale}>
       <body className="min-h-dvh bg-gradient-to-b from-pink-50 to-rose-50 text-zinc-800 antialiased">
         <Header />
         <main className="mx-auto max-w-screen-xl px-4">{children}</main>
