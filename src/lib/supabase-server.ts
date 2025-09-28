@@ -1,8 +1,10 @@
-// server-side only
-import { createClient } from "@supabase/supabase-js";
+// src/lib/supabase-server.ts
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-export const supabaseServer = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE!, // 読み取りは anon でも可だが、ここは確実に取るためSRで
-  { auth: { persistSession: false } }
-);
+// モジュール読み込み時に env を読まない！関数内で読む
+export function getSupabase(): SupabaseClient | null {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) return null;          // ← envが無ければ null を返す
+  return createClient(url, key);
+}
