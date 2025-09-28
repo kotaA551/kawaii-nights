@@ -1,23 +1,19 @@
+// src/components/Carousel.tsx
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
-  children: React.ReactNode[] | React.ReactNode;
-  /** 何秒ごとに自動スライドするか（ms）。0で停止。デフォ: 3000ms */
+  children: React.ReactNode | React.ReactNode[];
+  /** 自動スライド間隔(ms)。0で停止。デフォ: 3000 */
   autoplay?: number;
-  /** スライド1枚の最小幅（Tailwindクラス）。デフォ: モバイル80% / md 50% / lg 33% */
+  /** スライド1枚の最小幅（Tailwindクラス） */
   slideClassName?: string;
-  /** コンテナに追加クラス */
+  /** 追加クラス */
   className?: string;
 };
 
-/**
- * 依存ゼロのシンプル横スライダー
- * - ボタンで±1枚ずつ移動
- * - 自動スライド(既定3秒)・ホバー/タッチで一時停止
- * - スライド幅はResizeObserverで測ってtransform移動
- */
+/** シンプル横スライダー（左右ボタン + 自動スライド + ホバー停止） */
 export default function Carousel({
   children,
   autoplay = 3000,
@@ -35,7 +31,7 @@ export default function Carousel({
   const firstSlideRef = useRef<HTMLDivElement | null>(null);
 
   const [index, setIndex] = useState(0);
-  const [slideSize, setSlideSize] = useState(0); // 1枚ぶん（幅＋gap相当）
+  const [slideSize, setSlideSize] = useState(0); // 1枚ぶん（幅＋gap）
 
   // スライドサイズ計測（幅＋gap）
   useEffect(() => {
@@ -63,26 +59,30 @@ export default function Carousel({
     track.style.transform = `translate3d(${-index * slideSize}px,0,0)`;
   }, [index, slideSize]);
 
+  // 移動関数
   const next = useCallback(() => setIndex((i) => (i + 1) % count), [count]);
   const prev = useCallback(() => setIndex((i) => (i - 1 + count) % count), [count]);
 
   // 自動スライド
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const stop = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = null;
-  };
-  const start = () => {
+
+  const stop = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const start = useCallback(() => {
     if (autoplay > 0 && !timerRef.current) {
       timerRef.current = setInterval(next, autoplay);
     }
-  };
+  }, [autoplay, next]);
 
   useEffect(() => {
     start();
     return stop;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoplay, next]);
+  }, [start, stop]);
 
   // ホバー/タッチで一時停止
   useEffect(() => {
@@ -100,7 +100,7 @@ export default function Carousel({
       vp.removeEventListener("touchstart", onEnter);
       vp.removeEventListener("touchend", onLeave);
     };
-  }, []);
+  }, [start, stop]);
 
   if (count === 0) return null;
 
