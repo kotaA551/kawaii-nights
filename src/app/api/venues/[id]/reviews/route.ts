@@ -1,23 +1,28 @@
 // src/app/api/venues/[id]/reviews/route.ts
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { getSupabase } from "@/lib/supabase-server";
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
+  req: Request,
+  context: { params: { id: string } }
 ) {
-  const { data, error } = await supabase
-    .from("venue_reviews")
-    .select("rating,language,nickname,comment,created_at")
-    .eq("venue_id", params.id)
-    .order("created_at", { ascending: false })
-    .limit(10);
+  const supabase = getSupabase();
+  if (!supabase) {
+    return NextResponse.json({ reviews: [] }, { status: 500 });
+  }
 
-  if (error) return NextResponse.json([], { status: 200 });
-  return NextResponse.json(data ?? [], { status: 200 });
+  const venueId = context.params.id;
+
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("*")
+    .eq("venue_id", venueId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[reviews] error:", error);
+    return NextResponse.json({ reviews: [] }, { status: 500 });
+  }
+
+  return NextResponse.json({ reviews: data ?? [] });
 }
