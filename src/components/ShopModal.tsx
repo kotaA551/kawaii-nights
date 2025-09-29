@@ -2,13 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import Image from "next/image";
 import Carousel from "@/components/Carousel";
 import type { Shop } from "@/lib/types";
+
+type PriceInfo = {
+  currency: string;
+  coverCharge?: string | number;
+  avgSpendMin?: number;
+  avgSpendMax?: number;
+  notes?: string;
+};
+
+type ExtraShopFields = {
+  ratingAvg?: number;   // 0–5
+  ratingCount?: number; // 件数
+  price?: PriceInfo;
+};
 
 export default function ShopModal({
   shop,
   onClose,
-}: { shop: Shop; onClose: () => void }) {
+}: {
+  shop: Shop & Partial<ExtraShopFields>;
+  onClose: () => void;
+}) {
   const [active, setActive] = useState(0);
 
   // 背景スクロール固定
@@ -16,7 +34,9 @@ export default function ShopModal({
     const html = document.documentElement;
     const prev = html.style.overflow;
     html.style.overflow = "hidden";
-    return () => { html.style.overflow = prev; };
+    return () => {
+      html.style.overflow = prev;
+    };
   }, []);
 
   // Escapeキーで閉じる
@@ -66,13 +86,16 @@ export default function ShopModal({
               onIndexChange={setActive}
             >
               {shop.images.map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt={`${shop.name} 写真${i + 1}`}
-                  loading="lazy"
-                  className="w-full h-64 object-cover"
-                />
+                <div key={i} className="relative w-full h-64">
+                  <Image
+                    src={src}
+                    alt={`${shop.name} 写真${i + 1}`}
+                    fill
+                    priority={i === 0}
+                    sizes="100vw"
+                    className="object-cover"
+                  />
+                </div>
               ))}
             </Carousel>
 
@@ -105,31 +128,40 @@ export default function ShopModal({
           >
             Open Google Map
           </a>
-        </div>
 
-        {/* Rating & Price */}
-        <div className="mt-3 space-y-1 text-sm">
-          {/* ★評価 */}
-          {typeof (shop as any).ratingAvg === "number" && (
-            <p aria-label="Rating">
-              {"★".repeat(Math.round((shop as any).ratingAvg))}{" "}
-              <span className="text-zinc-500">
-                ({(shop as any).ratingAvg} / 5 · {(shop as any).ratingCount} reviews)
-              </span>
-            </p>
-          )}
-          {/* 料金相場 */}
-          {(shop as any).price && (
-            <p aria-label="Price range">
-              💰 {(shop as any).price.currency} 
-              {(shop as any).price.coverCharge ? ` · Cover ${ (shop as any).price.coverCharge }` : ""} 
-              {((shop as any).price.avgSpendMin || (shop as any).price.avgSpendMax) &&
-                ` · Avg ${ (shop as any).price.avgSpendMin ?? "?" }–${ (shop as any).price.avgSpendMax ?? "?" }`}
-              {(shop as any).price.notes ? ` · ${(shop as any).price.notes}` : ""}
-            </p>
-          )}
+          {/* Rating & Price（任意フィールドがある場合のみ表示） */}
+          <div className="mt-3 space-y-1 text-sm">
+            {/* ★評価 */}
+            {typeof shop.ratingAvg === "number" && (
+              <p aria-label="Rating">
+                {"★".repeat(Math.round(shop.ratingAvg))}
+                <span className="text-zinc-500">
+                  {" "}
+                  ({shop.ratingAvg} / 5
+                  {typeof shop.ratingCount === "number"
+                    ? ` · ${shop.ratingCount} reviews`
+                    : ""}
+                  )
+                </span>
+              </p>
+            )}
+            {/* 料金相場 */}
+            {shop.price && (
+              <p aria-label="Price range">
+                💰 {shop.price.currency}
+                {shop.price.coverCharge
+                  ? ` · Cover ${shop.price.coverCharge}`
+                  : ""}
+                {(shop.price.avgSpendMin ?? shop.price.avgSpendMax) !==
+                  undefined &&
+                  ` · Avg ${shop.price.avgSpendMin ?? "?"}–${
+                    shop.price.avgSpendMax ?? "?"
+                  }`}
+                {shop.price.notes ? ` · ${shop.price.notes}` : ""}
+              </p>
+            )}
+          </div>
         </div>
-
       </div>
     </div>
   );
