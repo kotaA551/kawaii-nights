@@ -2,13 +2,9 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase-server";
 
-// Next 15 対応: params が Promise の可能性を考慮
-type Ctx =
-  | { params: Promise<{ id: string }> }
-  | { params: { id: string } };
-
-export async function GET(_req: Request, ctx: Ctx) {
-  const { id } = await ctx.params; // ← 必ず await で解決
+// ✅ Nextが期待する“RouteContext”に一致する形で受ける（独自型は作らない）
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  const { id } = params;
 
   const supabase = getSupabase();
   if (!supabase) {
