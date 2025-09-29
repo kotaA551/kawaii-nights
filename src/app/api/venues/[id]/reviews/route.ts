@@ -3,20 +3,21 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase-server";
 
 export async function GET(
-  req: Request,
-  context: { params: { id: string } }
+  _req: Request,
+  { params }: { params: { id: string } } // ← 分割代入＋ここに型
 ) {
   const supabase = getSupabase();
   if (!supabase) {
+    console.error("[reviews] Supabase env missing");
     return NextResponse.json({ reviews: [] }, { status: 500 });
   }
 
-  const venueId = context.params.id;
+  const { id } = params;
 
   const { data, error } = await supabase
     .from("reviews")
     .select("*")
-    .eq("venue_id", venueId)
+    .eq("venue_id", id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -24,5 +25,5 @@ export async function GET(
     return NextResponse.json({ reviews: [] }, { status: 500 });
   }
 
-  return NextResponse.json({ reviews: data ?? [] });
+  return NextResponse.json({ reviews: data ?? [] }, { status: 200 });
 }
