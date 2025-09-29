@@ -1,31 +1,47 @@
-// src/app/api/venues/[id]/reviews/route.ts
+// src/app/api/venues/route.ts
 import { NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase-server";
+import { createClient } from "@supabase/supabase-js";
 
-// Next 15 対応: params が Promise の可能性を考慮
-type Ctx =
-  | { params: Promise<{ id: string }> }
-  | { params: { id: string } };
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-export async function GET(_req: Request, ctx: Ctx) {
-  const { id } = await ctx.params; // ← 必ず await で解決
+export async function GET() {
+  // venues + stats + prices をまとめて取得
+  const [venuesRes, statsRes, pricesRes] = await Promise.all([
+    supabase.from("venues").select("id,name,address,lat,lng,category,concept,price_range,hours,images").limit(800),
+    supabase.from("venue_stats").select("*"),
+    supabase.from("venue_prices").select("*"),
+  ]);
 
-  const supabase = getSupabase();
-  if (!supabase) {
-    console.error("[reviews] Supabase env missing");
-    return NextResponse.json({ reviews: [] }, { status: 500 });
-  }
+  const venues = venuesRes.data ?? [];
+  const stats  = Object.fromEntries((statsRes.data ?? []).map(s => [s.venue_id, s]));
+  const prices = Object.fromEntries((pricesRes.data ?? []).map(p => [p.venue_id, p]));
 
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("*")
-    .eq("venue_id", id)
-    .order("created_at", { ascending: false });
+  const normalized = venues.map((r) => ({
+    id: r.id,
+    name: r.name,
+    address: r.address,
+    lat: r.lat,
+    lng: r.lng,
+    category: r.category,
+    concept: r.concept ?? null,
+    priceRange: r.price_range ?? null,
+    hours: r.hours ?? null,
+    images: r.images ?? null,
+    ratingAvg: stats[r.id]?.rating_avg ?? null,
+    ratingCount: stats[r.id]?.rating_count ?? 0,
+    price: prices[r.id]
+      ? {
+          currency: prices[r.id].currency,
+          coverCharge: prices[r.id].cover_charge,
+          avgSpendMin: prices[r.id].avg_spend_min,
+          avgSpendMax: prices[r.id].avg_spend_max,
+          notes: prices[r.id].notes,
+        }
+      : null,
+  }));
 
-  if (error) {
-    console.error("[reviews] error:", error);
-    return NextResponse.json({ reviews: [] }, { status: 500 });
-  }
-
-  return NextResponse.json({ reviews: data ?? [] }, { status: 200 });
+  return NextResponse.json(normalized, { status: 200 });
 }
