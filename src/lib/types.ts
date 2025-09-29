@@ -1,5 +1,5 @@
 // src/lib/types.ts
-export type Category = 'concafe' | 'girlsbar' | 'hostclub';
+export type Category = 'concafe' | 'girlsbar';
 
 export type Shop = {
   id: string;
