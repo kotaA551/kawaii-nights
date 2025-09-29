@@ -2,12 +2,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ShopCard from "@/components/ShopCard";
+import type { Shop } from "@/lib/types";
 import Carousel from "@/components/Carousel";
-import type { Shop, Category } from "@/lib/types";
+import ShopCard from "@/components/ShopCard";
+import ShopModal from "@/components/ShopModal";
+import { MapView } from "@/components/Map";
 
-// サーバから来る可能性がある null を許容した受け皿型
-type ApiShop = Omit<Shop, "concept" | "priceRange" | "hours" | "images" | "alcohol" | "smoking"> & {
+type ApiShop = Omit<
+  Shop,
+  "concept" | "priceRange" | "hours" | "images" | "alcohol" | "smoking"
+> & {
   concept?: string | null;
   priceRange?: string | null;
   hours?: string | null;
@@ -16,7 +20,6 @@ type ApiShop = Omit<Shop, "concept" | "priceRange" | "hours" | "images" | "alcoh
   smoking?: Shop["smoking"] | null;
 };
 
-// null → undefined へ正規化して、共有型 Shop にそろえる
 const normalizeShop = (x: ApiShop): Shop => ({
   ...x,
   concept: x.concept ?? undefined,
@@ -27,15 +30,27 @@ const normalizeShop = (x: ApiShop): Shop => ({
   smoking: x.smoking ?? undefined,
 });
 
-const CATS = ["concafe", "girlsbar", "hostclub"] as const;
-const AREAS = ["all", "tokyo", "osaka", "kyoto", "fukuoka"] as const;
-
-export default function HomePage() {
-  const [q, setQ] = useState("");
-  const [cats, setCats] = useState<Category[]>(["concafe", "girlsbar", "hostclub"]);
-  const [area, setArea] = useState<(typeof AREAS)[number]>("all");
+export default function HomeMobileFirst() {
   const [shops, setShops] = useState<Shop[]>([]);
+  const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // 位置情報の取得（許可ダイアログ）
+  useEffect(() => {
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => {
+        // 許可されない場合は東京駅を仮地点
+        setGeo({ lat: 35.681236, lng: 139.767125 });
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }, []);
+
+  // 店舗の取得
   useEffect(() => {
     (async () => {
       const res = await fetch("/api/venues", { cache: "no-store" });
@@ -44,109 +59,76 @@ export default function HomePage() {
     })();
   }, []);
 
-  const filtered = useMemo(() => {
-    const kw = q.trim().toLowerCase();
-    return shops.filter((s) => {
-      const byCat = cats.includes(s.category as Category);
-      const byArea = area === "all" || s.area === area;
-      const byText =
-        !kw ||
-        (s.name ?? "").toLowerCase().includes(kw) ||
-        (s.concept ?? "").toLowerCase().includes(kw) ||
-        (s.address ?? "").toLowerCase().includes(kw);
-      return byCat && byArea && byText;
+  // 距離計算（Haversine）
+  const withDistance = useMemo(() => {
+    if (!geo) return shops.map((s) => ({ s, d: Number.MAX_SAFE_INTEGER }));
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const R = 6371e3; // m
+    return shops.map((s) => {
+      const φ1 = toRad(geo.lat);
+      const φ2 = toRad(s.lat);
+      const Δφ = toRad(s.lat - geo.lat);
+      const Δλ = toRad(s.lng - geo.lng);
+      const a =
+        Math.sin(Δφ / 2) ** 2 +
+        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+      const d = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); // meters
+      return { s, d };
     });
-  }, [q, cats, area, shops]);
+  }, [shops, geo]);
+
+  const nearby = useMemo(
+    () => withDistance.sort((a, b) => a.d - b.d).map((x) => x.s),
+    [withDistance]
+  );
+
+  const selectedShop = useMemo(
+    () => nearby.find((x) => x.id === selectedId) || null,
+    [nearby, selectedId]
+  );
 
   return (
     <>
-      {/* Hero / Filters */}
-      <section className="section k-card mt-6 p-6 md:p-10 bg-gradient-to-r from-pink-100 via-rose-100 to-fuchsia-100 border-none">
-        <p className="text-xs font-semibold text-pink-600">Kawaii Nights</p>
-        <h1 className="mt-2 text-3xl md:text-4xl">Discover Japan&apos;s Cute Nightlife</h1>
-        <p className="mt-3 text-zinc-600">ConCafes • Girls Bars • Host Clubs</p>
-
-        <div className="mt-6 grid gap-4">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search (name / concept)"
-            className="w-full rounded-xl border border-pink-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-pink-300"
-          />
-          <div className="flex gap-2 overflow-x-auto">
-            {CATS.map((c) => {
-              const active = cats.includes(c as Category);
-              return (
-                <button
-                  key={c}
-                  onClick={() =>
-                    setCats((prev) =>
-                      prev.includes(c as Category)
-                        ? prev.filter((p) => p !== c)
-                        : [...prev, c as Category]
-                    )
-                  }
-                  className={`pill ${active ? "pill-active" : ""}`}
-                >
-                  {labelCat(c as Category)}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex gap-2 overflow-x-auto">
-            {AREAS.map((a) => (
-              <button
-                key={a}
-                onClick={() => setArea(a)}
-                className={`pill ${area === a ? "pill-active" : ""}`}
-              >
-                {labelArea(a)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Recommended slider */}
-      <section id="recommend" className="section">
-        <h2 className="mb-4 text-xl">Recommended</h2>
-        <Carousel
-          autoplay={3000}
-          slideClassName="min-w-[80%] md:min-w-[50%] lg:min-w-[33%]"
-          className="k-card p-4"
-        >
-          {shops.slice(0, 12).map((s) => (
-            <div key={s.id} className="h-full">
-              <ShopCard shop={s} />
-            </div>
-          ))}
-        </Carousel>
-      </section>
-
-      {/* Search results */}
-      <section className="section">
-        <h2 className="mb-4 text-xl">Search Results</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((s) => (
-            <ShopCard key={s.id} shop={s} />
-          ))}
-          {filtered.length === 0 && (
-            <div className="k-card p-6 text-center text-zinc-500">
-              No venues match your search criteria
-            </div>
+      {/* Nearby Shops (Carousel) */}
+      <section className="mt-3">
+        <div className="flex items-baseline justify-between px-2">
+          <h2 className="text-lg font-bold">Nearby Shops</h2>
+          {geo && (
+            <p className="text-xs text-zinc-500">
+              Location: {geo.lat.toFixed(3)}, {geo.lng.toFixed(3)}
+            </p>
           )}
         </div>
+        <div className="k-card p-3 mt-2">
+          <Carousel autoplay={0} slideClassName="min-w-[86%]">
+            {nearby.slice(0, 12).map((s) => (
+              <div key={s.id} className="h-full">
+                <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
+              </div>
+            ))}
+          </Carousel>
+        </div>
       </section>
+
+      {/* Map (MapLibre) */}
+      <section className="mt-4">
+        <div className="flex items-baseline justify-between px-2">
+          <h2 className="text-lg font-bold">Search by Map</h2>
+        </div>
+        <div className="k-card p-1 mt-2">
+          <MapView
+            shops={nearby}
+            selectedId={selectedId}
+            onSelect={(id) => setSelectedId(id)}
+          />
+        </div>
+      </section>
+
+      {/* Bottom Sheet Modal */}
+      {selectedShop && (
+        <ShopModal shop={selectedShop} onClose={() => setSelectedId(null)} />
+      )}
     </>
   );
 }
 
-function labelCat(c: Category) {
-  if (c === "concafe") return "ConCafe";
-  if (c === "girlsbar") return "Girls Bar";
-  return "Host Club";
-}
-
-function labelArea(a: (typeof AREAS)[number]) {
-  return a === "all" ? "All Areas" : a[0].toUpperCase() + a.slice(1);
-}

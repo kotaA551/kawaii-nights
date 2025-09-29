@@ -1,19 +1,47 @@
 // src/app/api/venues/route.ts
 import { NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase-server";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export async function GET() {
-  const supabase = getSupabase();
+  // venues + stats + prices をまとめて取得
+  const [venuesRes, statsRes, pricesRes] = await Promise.all([
+    supabase.from("venues").select("id,name,address,lat,lng,category,concept,price_range,hours,images").limit(800),
+    supabase.from("venue_stats").select("*"),
+    supabase.from("venue_prices").select("*"),
+  ]);
 
-  // env 未設定時はローカルの JSON を返してビルドを通す
-  if (!supabase) {
-    const shops = (await import("@/data/shops.json")).default;
-    return NextResponse.json(shops, { status: 200 });
-  }
+  const venues = venuesRes.data ?? [];
+  const stats  = Object.fromEntries((statsRes.data ?? []).map(s => [s.venue_id, s]));
+  const prices = Object.fromEntries((pricesRes.data ?? []).map(p => [p.venue_id, p]));
 
-  const { data, error } = await supabase.from("venues").select("*").limit(500);
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  return NextResponse.json(data ?? [], { status: 200 });
+  const normalized = venues.map((r) => ({
+    id: r.id,
+    name: r.name,
+    address: r.address,
+    lat: r.lat,
+    lng: r.lng,
+    category: r.category,
+    concept: r.concept ?? null,
+    priceRange: r.price_range ?? null,
+    hours: r.hours ?? null,
+    images: r.images ?? null,
+    ratingAvg: stats[r.id]?.rating_avg ?? null,
+    ratingCount: stats[r.id]?.rating_count ?? 0,
+    price: prices[r.id]
+      ? {
+          currency: prices[r.id].currency,
+          coverCharge: prices[r.id].cover_charge,
+          avgSpendMin: prices[r.id].avg_spend_min,
+          avgSpendMax: prices[r.id].avg_spend_max,
+          notes: prices[r.id].notes,
+        }
+      : null,
+  }));
+
+  return NextResponse.json(normalized, { status: 200 });
 }

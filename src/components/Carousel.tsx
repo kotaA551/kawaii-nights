@@ -11,14 +11,17 @@ type Props = {
   slideClassName?: string;
   /** 追加クラス */
   className?: string;
+  /** スライドインデックスが変わったとき通知（インジケータ用） */
+  onIndexChange?: (index: number) => void;
 };
 
-/** シンプル横スライダー（左右ボタン + 自動スライド + ホバー停止） */
+/** スワイプ対応の横スライダー（左右ボタン + 自動スライド + ホバー停止 + スワイプ） */
 export default function Carousel({
   children,
   autoplay = 3000,
   slideClassName = "min-w-[80%] md:min-w-[50%] lg:min-w-[33%]",
   className = "",
+  onIndexChange,
 }: Props) {
   const items = useMemo(
     () => (Array.isArray(children) ? children : [children]).filter(Boolean) as React.ReactNode[],
@@ -57,7 +60,8 @@ export default function Carousel({
     const track = trackRef.current;
     if (!track) return;
     track.style.transform = `translate3d(${-index * slideSize}px,0,0)`;
-  }, [index, slideSize]);
+    onIndexChange?.(index);
+  }, [index, slideSize, onIndexChange]);
 
   // 移動関数
   const next = useCallback(() => setIndex((i) => (i + 1) % count), [count]);
@@ -65,14 +69,12 @@ export default function Carousel({
 
   // 自動スライド
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   const stop = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
   }, []);
-
   const start = useCallback(() => {
     if (autoplay > 0 && !timerRef.current) {
       timerRef.current = setInterval(next, autoplay);
@@ -102,6 +104,38 @@ export default function Carousel({
     };
   }, [start, stop]);
 
+  // スワイプ（ドラッグ）対応
+  useEffect(() => {
+    const vp = viewportRef.current;
+    if (!vp) return;
+    let startX = 0;
+    let moved = 0;
+    const THRESHOLD = 40; // px
+
+    const onTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      moved = 0;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      moved = e.touches[0].clientX - startX;
+    };
+    const onTouchEnd = () => {
+      if (moved > THRESHOLD) prev();
+      else if (moved < -THRESHOLD) next();
+      startX = 0;
+      moved = 0;
+    };
+
+    vp.addEventListener("touchstart", onTouchStart, { passive: true });
+    vp.addEventListener("touchmove", onTouchMove, { passive: true });
+    vp.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      vp.removeEventListener("touchstart", onTouchStart);
+      vp.removeEventListener("touchmove", onTouchMove);
+      vp.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [next, prev]);
+
   if (count === 0) return null;
 
   return (
@@ -126,18 +160,18 @@ export default function Carousel({
         </div>
       </div>
 
-      {/* 左右ボタン */}
+      {/* 左右ボタン（スマホでは半透明で小さめ） */}
       <button
         aria-label="Previous"
         onClick={prev}
-        className="absolute left-1 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/90 shadow px-3 py-2 text-xl hover:bg-white"
+        className="absolute left-1 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 shadow px-3 py-2 text-xl hover:bg-white"
       >
         ‹
       </button>
       <button
         aria-label="Next"
         onClick={next}
-        className="absolute right-1 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/90 shadow px-3 py-2 text-xl hover:bg-white"
+        className="absolute right-1 top-1/2 -translate-y-1/2 z-10 rounded-full bg-white/80 shadow px-3 py-2 text-xl hover:bg-white"
       >
         ›
       </button>
