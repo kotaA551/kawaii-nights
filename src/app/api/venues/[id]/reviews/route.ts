@@ -2,9 +2,15 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase-server";
 
-// ✅ Nextが期待する“RouteContext”に一致する形で受ける（独自型は作らない）
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function GET(_req: Request, ctx: any) {
+  // params が同期/Promise どちらでも拾えるようにする
+  const raw = ctx?.params;
+  const params = typeof raw?.then === "function" ? await raw : raw;
+  const id = params?.id as string | undefined;
+
+  if (!id) {
+    return NextResponse.json({ reviews: [] }, { status: 400 });
+  }
 
   const supabase = getSupabase();
   if (!supabase) {
