@@ -10,7 +10,7 @@ const supabase = createClient(
 export async function GET() {
   // venues + stats + prices をまとめて取得
   const [venuesRes, statsRes, pricesRes] = await Promise.all([
-    supabase.from("venues").select("id,name,address,lat,lng,category,price_range,hours,images").limit(800),
+    supabase.from("venues").select("id,name,address,lat,lng,concept,price_range,hours,images").limit(800),
     supabase.from("venue_stats").select("*"),
     supabase.from("venue_prices").select("*"),
   ]);
@@ -25,7 +25,7 @@ export async function GET() {
     address: r.address,
     lat: r.lat,
     lng: r.lng,
-    category: r.category,
+    concept: r.concept ?? null,
     priceRange: r.price_range ?? null,
     hours: r.hours ?? null,
     images: r.images ?? null,

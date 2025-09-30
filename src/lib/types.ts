@@ -4,7 +4,6 @@ export type Category = 'concafe' | 'girlsbar';
 export type Shop = {
   id: string;
   name: string;
-  category: Category;
   concept?: string;
   priceRange?: string;
   address: string;
