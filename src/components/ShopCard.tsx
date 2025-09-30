@@ -35,7 +35,6 @@ export default function ShopCard({
         </h3>
         <p className="text-xs text-zinc-500 line-clamp-1">{shop.address}</p>
         <div className="flex flex-wrap gap-2 pt-1">
-          <span className={`pill chip-${shop.category}`}>{shop.category}</span>
           {shop.concept && <span className="pill">{shop.concept}</span>}
           {shop.priceRange && <span className="pill">{shop.priceRange}</span>}
         </div>
