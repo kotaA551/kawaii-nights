@@ -31,25 +31,23 @@ const normalizeShop = (x: ApiShop): Shop => ({
 export default function HomeMobileFirst() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
+
+  // モーダルで開く店ID
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // スライドの現在インデックス
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // 位置情報の取得（許可ダイアログ）
+  // 位置情報
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      },
-      () => {
-        // 許可されない場合は東京駅を仮地点
-        setGeo({ lat: 35.681236, lng: 139.767125 });
-      },
+      (pos) => setGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setGeo({ lat: 35.681236, lng: 139.767125 }), // 東京駅
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }, []);
 
-  // 店舗の取得
+  // 店舗取得
   useEffect(() => {
     (async () => {
       const res = await fetch("/api/venues", { cache: "no-store" });
@@ -81,17 +79,14 @@ export default function HomeMobileFirst() {
     [withDistance]
   );
 
-  // リストが更新されたら、いまの activeIndex に合わせて選択を揃える
-  useEffect(() => {
-    const id = nearby[activeIndex]?.id ?? nearby[0]?.id ?? null;
-    setSelectedId(id);
-  }, [nearby, activeIndex]);
+  // 地図フォーカス用ID
+  const activeId = nearby[activeIndex]?.id ?? null;
 
+  // モーダルに表示する店
   const selectedShop = useMemo(
     () => nearby.find((x) => x.id === selectedId) || null,
     [nearby, selectedId]
   );
-
 
   return (
     <>
@@ -112,13 +107,13 @@ export default function HomeMobileFirst() {
             slideClassName="min-w-full"
             className="rounded-2xl overflow-hidden"
             onIndexChange={(i) => {
+              // スライド切り替え → activeIndex 更新
               setActiveIndex(i);
-              const id = nearby[i]?.id ?? null;
-              setSelectedId(id);
             }}
           >
             {nearby.slice(0, 12).map((s) => (
               <div key={s.id} className="h-full">
+                {/* カードクリック時だけモーダルを開く */}
                 <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
               </div>
             ))}
@@ -134,10 +129,11 @@ export default function HomeMobileFirst() {
         <div className="k-card p-1 mt-2">
           <GoogleMap
             shops={nearby}
-            activeId={selectedId}
+            activeId={activeId}
+            userLocation={geo}
             onSelect={(id) => {
+              // ピンをタップした時だけモーダル開く
               setSelectedId(id);
-              // 選択とカルーセルのインデックスも同期（可能なら）
               const idx = nearby.findIndex((s) => s.id === id);
               if (idx >= 0) setActiveIndex(idx);
             }}
@@ -153,5 +149,3 @@ export default function HomeMobileFirst() {
     </>
   );
 }
-
-
