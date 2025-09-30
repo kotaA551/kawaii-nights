@@ -47,7 +47,6 @@ el.style.width = '14px'
 el.style.height = '14px'
 el.style.border = '2px solid white'
 el.style.boxShadow = '0 0 0 2px rgba(201,160,220,0.6)'
-el.style.background = s.category==='concafe' ? '#FFB6C1' : s.category==='girlsbar' ? '#AEEEEE' : '#C9A0DC'
 el.style.cursor = 'pointer'
 el.addEventListener('click', ()=> onSelect(s.id))
 const m = new maplibregl.Marker({ element: el }).setLngLat([s.lng, s.lat]).addTo(map)
