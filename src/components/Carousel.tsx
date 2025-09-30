@@ -5,17 +5,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
   children: React.ReactNode | React.ReactNode[];
-  /** 自動スライド間隔(ms)。0で停止。デフォ: 3000 */
-  autoplay?: number;
-  /** スライド1枚の最小幅（Tailwindクラス） */
-  slideClassName?: string;
-  /** 追加クラス */
+  autoplay?: number;           // ms, 0で停止
+  slideClassName?: string;     // 1枚の最小幅
   className?: string;
-  /** スライドインデックスが変わったとき通知（インジケータ用） */
   onIndexChange?: (index: number) => void;
 };
 
-/** スワイプ対応の横スライダー（左右ボタン + 自動スライド + ホバー停止 + スワイプ） */
 export default function Carousel({
   children,
   autoplay = 3000,
@@ -34,7 +29,7 @@ export default function Carousel({
   const firstSlideRef = useRef<HTMLDivElement | null>(null);
 
   const [index, setIndex] = useState(0);
-  const [slideSize, setSlideSize] = useState(0); // 1枚ぶん（幅＋gap）
+  const [slideSize, setSlideSize] = useState(0); // 幅 + gap
 
   // スライドサイズ計測（幅＋gap）
   useEffect(() => {
@@ -47,25 +42,27 @@ export default function Carousel({
       const gap = parseFloat(styles.columnGap || styles.gap || "0");
       setSlideSize(w + gap);
     };
-    update();
 
     const ro = new ResizeObserver(update);
     if (firstSlideRef.current) ro.observe(firstSlideRef.current);
     if (trackRef.current) ro.observe(trackRef.current);
-    return () => ro.disconnect();
-  }, []);
+    // 初期フレームでも計測
+    const raf = requestAnimationFrame(update);
 
-  // 変換適用
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [count]);
+
+  // インデックス通知
   useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.style.transform = `translate3d(${-index * slideSize}px,0,0)`;
     onIndexChange?.(index);
-  }, [index, slideSize, onIndexChange]);
+  }, [index, onIndexChange]);
 
-  // 移動関数
-  const next = useCallback(() => setIndex((i) => (i + 1) % count), [count]);
-  const prev = useCallback(() => setIndex((i) => (i - 1 + count) % count), [count]);
+  // ナビゲーション
+  const next = useCallback(() => setIndex(i => (i + 1) % count), [count]);
+  const prev = useCallback(() => setIndex(i => (i - 1 + count) % count), [count]);
 
   // 自動スライド
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -86,7 +83,7 @@ export default function Carousel({
     return stop;
   }, [start, stop]);
 
-  // ホバー/タッチで一時停止
+  // ホバー/タッチで停止・再開
   useEffect(() => {
     const vp = viewportRef.current;
     if (!vp) return;
@@ -104,39 +101,10 @@ export default function Carousel({
     };
   }, [start, stop]);
 
-  // スワイプ（ドラッグ）対応
-  useEffect(() => {
-    const vp = viewportRef.current;
-    if (!vp) return;
-    let startX = 0;
-    let moved = 0;
-    const THRESHOLD = 40; // px
-
-    const onTouchStart = (e: TouchEvent) => {
-      startX = e.touches[0].clientX;
-      moved = 0;
-    };
-    const onTouchMove = (e: TouchEvent) => {
-      moved = e.touches[0].clientX - startX;
-    };
-    const onTouchEnd = () => {
-      if (moved > THRESHOLD) prev();
-      else if (moved < -THRESHOLD) next();
-      startX = 0;
-      moved = 0;
-    };
-
-    vp.addEventListener("touchstart", onTouchStart, { passive: true });
-    vp.addEventListener("touchmove", onTouchMove, { passive: true });
-    vp.addEventListener("touchend", onTouchEnd, { passive: true });
-    return () => {
-      vp.removeEventListener("touchstart", onTouchStart);
-      vp.removeEventListener("touchmove", onTouchMove);
-      vp.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [next, prev]);
-
   if (count === 0) return null;
+
+  // ★ transform を state から style プロップで渡す
+  const offset = slideSize > 0 ? -index * slideSize : 0;
 
   return (
     <div className={`relative ${className}`}>
@@ -146,13 +114,13 @@ export default function Carousel({
         <div
           ref={trackRef}
           className="flex gap-4 transition-transform duration-500 ease-out will-change-transform"
-          style={{ transform: "translate3d(0,0,0)" }}
+          style={{ transform: `translate3d(${offset}px,0,0)` }}
         >
           {items.map((child, i) => (
             <div
               key={i}
               ref={i === 0 ? firstSlideRef : undefined}
-              className={`${slideClassName} flex-shrink-0`}
+              className={`flex-shrink-0 ${slideClassName}`}
             >
               {child}
             </div>
@@ -160,7 +128,7 @@ export default function Carousel({
         </div>
       </div>
 
-      {/* 左右ボタン（スマホでは半透明で小さめ） */}
+      {/* 矢印 */}
       <button
         aria-label="Previous"
         onClick={prev}

@@ -100,7 +100,7 @@ export default function HomeMobileFirst() {
           )}
         </div>
         <div className="k-card p-3 mt-2">
-          <Carousel autoplay={0} slideClassName="min-w-[86%]">
+          <Carousel autoplay={3000} slideClassName="min-w-[86%]">
             {nearby.slice(0, 12).map((s) => (
               <div key={s.id} className="h-full">
                 <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />

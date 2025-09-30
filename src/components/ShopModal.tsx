@@ -115,7 +115,7 @@ export default function ShopModal({
 
         {/* 基本情報 */}
         <div className="px-4 pb-5">
-          <p className="mt-2 text-sm text-zinc-600">{shop.address}</p>
+          <p className="mt-2 text-sm text-zinc-600">Address:{shop.address}</p>
           {shop.concept && <p className="mt-1">{shop.concept}</p>}
           {shop.priceRange && <p className="mt-1">💰 {shop.priceRange}</p>}
           {shop.hours && <p className="mt-1">🕑 {shop.hours}</p>}
