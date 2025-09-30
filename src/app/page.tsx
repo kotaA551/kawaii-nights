@@ -122,7 +122,7 @@ export default function HomeMobileFirst() {
       </section>
 
       {/* Map (Google Maps) */}
-      <section className="m-4">
+      <section className="my-4">
         <div className="flex items-baseline justify-between px-2">
           <h2 className="text-lg font-bold">Search by Map</h2>
         </div>
