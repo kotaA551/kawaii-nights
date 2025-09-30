@@ -10,9 +10,8 @@ import { MapView } from "@/components/Map";
 
 type ApiShop = Omit<
   Shop,
-  "concept" | "priceRange" | "hours" | "images" | "alcohol" | "smoking"
+  "priceRange" | "hours" | "images" | "alcohol" | "smoking"
 > & {
-  concept?: string | null;
   priceRange?: string | null;
   hours?: string | null;
   images?: string[] | null;
@@ -22,7 +21,6 @@ type ApiShop = Omit<
 
 const normalizeShop = (x: ApiShop): Shop => ({
   ...x,
-  concept: x.concept ?? undefined,
   priceRange: x.priceRange ?? undefined,
   hours: x.hours ?? undefined,
   images: x.images ?? undefined,
