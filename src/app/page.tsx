@@ -89,26 +89,32 @@ export default function HomeMobileFirst() {
 
   return (
     <>
-      {/* Nearby Shops (Carousel) */}
-      <section className="mt-3">
-        <div className="flex items-baseline justify-between px-2">
-          <h2 className="text-lg font-bold">Nearby Shops</h2>
-          {geo && (
-            <p className="text-xs text-zinc-500">
-              Location: {geo.lat.toFixed(3)}, {geo.lng.toFixed(3)}
-            </p>
-          )}
+{/* Nearby Shops (Carousel) */}
+<section className="mt-3">
+  <div className="flex items-baseline justify-between px-2">
+    <h2 className="text-lg font-bold">Nearby Shops</h2>
+    {geo && (
+      <p className="text-xs text-zinc-500">
+        Location: {geo.lat.toFixed(3)}, {geo.lng.toFixed(3)}
+      </p>
+    )}
+  </div>
+
+  {/* 1画面=1カード見せに変更 */}
+  <div className="mt-2">
+    <Carousel
+      autoplay={3000}
+      slideClassName="min-w-full"         // ← ココが重要（1画面=1カード）
+      className="rounded-2xl overflow-hidden"
+    >
+      {nearby.slice(0, 12).map((s) => (
+        <div key={s.id} className="h-full">
+          <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
         </div>
-        <div className="k-card p-3 mt-2">
-          <Carousel autoplay={3000} slideClassName="min-w-[86%]">
-            {nearby.slice(0, 12).map((s) => (
-              <div key={s.id} className="h-full">
-                <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
-              </div>
-            ))}
-          </Carousel>
-        </div>
-      </section>
+      ))}
+    </Carousel>
+  </div>
+</section>
 
       {/* Map (MapLibre) */}
       <section className="mt-4">
