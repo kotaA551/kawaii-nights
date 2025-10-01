@@ -107,7 +107,6 @@ export default function HomeMobileFirst() {
             slideClassName="min-w-full"
             className="rounded-2xl overflow-hidden"
             onIndexChange={(i) => {
-              // スライド切り替え → activeIndex 更新
               setActiveIndex(i);
             }}
           >
@@ -124,7 +123,7 @@ export default function HomeMobileFirst() {
       {/* Map (Google Maps) */}
       <section className="my-4">
         <div className="flex items-baseline justify-between px-2">
-          <h2 className="text-lg font-bold">Search by Map</h2>
+          <h2 className="text-lg font-bold">Search by GooGle Map</h2>
         </div>
         <div className="k-card p-1 mt-2">
           <GoogleMap
