@@ -74,68 +74,47 @@ export function usePlacePhotos(
     };
   }, [shop.name, shop.address, shop.lat, shop.lng, resolvedPlaceId]);
 
-  // 写真を取得
+  // 写真を取得（自前API経由 / Places API (New) v1 を使用）
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      await googleLoader.load();
-      if (cancelled) return;
-
       if (!resolvedPlaceId) {
         setPhotos([]);
         return;
       }
 
-      // キャッシュ利用
       const cacheKey = `${resolvedPlaceId}:${maxWidth}x${maxHeight}:${maxCount}`;
       if (cache.has(cacheKey)) {
         setPhotos(cache.get(cacheKey)!);
         return;
       }
 
-      const svc = new google.maps.places.PlacesService(
-        document.createElement("div")
-      );
-      svc.getDetails(
-        {
-          placeId: resolvedPlaceId,
-          fields: ["photos"],
-        },
-        (place, status) => {
-          if (cancelled) return;
-          if (
-            status !== google.maps.places.PlacesServiceStatus.OK ||
-            !place
-          ) {
-            setPhotos([]);
-            return;
-          }
+      try {
+        const maxWidthPx = Math.max(maxWidth, maxHeight); // 短辺基準でもOK。好みで。
+        const res = await fetch(
+          `/api/places/photos?placeId=${encodeURIComponent(resolvedPlaceId)}&max=${maxCount}&maxWidthPx=${maxWidthPx}`,
+          { cache: "no-store" }
+        );
+        const data: { photos?: string[] } = await res.json();
 
-            const items =
-            (place.photos ?? [])
-                .slice(0, maxCount)
-                .map((p) => {
-                const url = p.getUrl({ maxWidth, maxHeight });
+        const items: PlacePhotoItem[] = (data.photos ?? []).map((url) => ({
+          url,
+          attributionsHtml: [], // v1 media では attribution は別管理。必要なら別で保持
+        }));
 
-                // 型の揺れ対策：公式型は html_attributions のみ
-                const atts =
-                    (p as unknown as { html_attributions?: string[] }).html_attributions ?? [];
-
-                return { url, attributionsHtml: atts };
-                }) ?? [];
-
-
-          cache.set(cacheKey, items);
-          setPhotos(items);
-        }
-      );
+        cache.set(cacheKey, items);
+        if (!cancelled) setPhotos(items);
+      } catch {
+        if (!cancelled) setPhotos([]);
+      }
     })();
 
     return () => {
       cancelled = true;
     };
   }, [resolvedPlaceId, maxWidth, maxHeight, maxCount]);
+
 
   return { photos, placeId: resolvedPlaceId };
 }
