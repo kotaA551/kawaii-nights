@@ -1,5 +1,6 @@
 "use client";
 import type { Shop } from "@/lib/types";
+import Image from "next/image";
 
 export default function ShopCard({
   shop,
@@ -17,11 +18,13 @@ export default function ShopCard({
       {/* カバー画像（なければグラデ） */}
       {cover ? (
         <div className="relative w-full aspect-[16/9]">
-          <img
+          <Image
             src={cover}
             alt={shop.name}
-            className="absolute inset-0 w-full h-full object-cover"
-            loading="lazy"
+            fill              // ← 親要素に絶対配置して全体を覆う
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 50vw" // 適当でOK。レスポンシブ時の最適化
+            priority={false}
           />
         </div>
       ) : (

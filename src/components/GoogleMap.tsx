@@ -8,11 +8,11 @@ import { Loader } from "@googlemaps/js-api-loader";
 
 type Props = {
   shops: Shop[];
-  activeId: string | null;                   // スライドの現在表示ID
-  onSelect: (id: string) => void;            // 地図側でピンをタップした時
+  activeId: string | null;
+  onSelect: (id: string) => void;
   className?: string;
-  height?: number;                           // px
-  userLocation?: { lat: number; lng: number } | null; // 現在地
+  height?: number;
+  userLocation?: { lat: number; lng: number } | null;
 };
 
 export default function GoogleMap({
@@ -26,22 +26,24 @@ export default function GoogleMap({
   const divRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  // お店マーカー（赤ピン）を管理
+  // 店舗マーカー
   const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
-  // 現在地マーカー（青丸）
-  const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  // 現在地マーカー（Marker または AdvancedMarkerElement）
+  const userMarkerRef = useRef<
+    google.maps.Marker | google.maps.marker.AdvancedMarkerElement | null
+  >(null);
 
   const loader = useMemo(
     () =>
       new Loader({
         apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
         version: "weekly",
-        libraries: ["marker"], 
+        libraries: ["marker"], // AdvancedMarker 用
       }),
     []
   );
 
-  // ── 初期化 ───────────────────────────────────────────────
+  // 初期化
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -50,11 +52,11 @@ export default function GoogleMap({
       if (cancelled) return;
 
       const map = new google.maps.Map(divRef.current, {
-        center: { lat: 35.681236, lng: 139.767125 }, // 東京駅
+        center: { lat: 35.681236, lng: 139.767125 },
         zoom: 12,
         disableDefaultUI: true,
         zoomControl: true,
-        mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID, // あれば使う（無くてもOK）
+        mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,
       });
       mapRef.current = map;
     })();
@@ -64,14 +66,13 @@ export default function GoogleMap({
     };
   }, [loader]);
 
-  // ── 店舗マーカーの追加/更新/削除 + 全体フィット ─────────────
+  // 店舗マーカー追加/更新/削除 + フィット
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !window.google) return;
 
     const ids = new Set(shops.map((s) => s.id));
 
-    // 不要マーカー削除
     for (const [id, m] of markersRef.current.entries()) {
       if (!ids.has(id)) {
         m.setMap(null);
@@ -79,10 +80,8 @@ export default function GoogleMap({
       }
     }
 
-    // 追加/更新
     shops.forEach((s) => {
       if (!markersRef.current.has(s.id)) {
-        // ● 標準の赤ピン（アイコン未指定のデフォルト）
         const marker = new google.maps.Marker({
           position: { lat: s.lat, lng: s.lng },
           map,
@@ -96,7 +95,6 @@ export default function GoogleMap({
       }
     });
 
-    // 軽く全体フィット（店舗がある場合のみ）
     if (shops.length > 0) {
       const bounds = new google.maps.LatLngBounds();
       shops.forEach((s) => bounds.extend({ lat: s.lat, lng: s.lng }));
@@ -104,46 +102,48 @@ export default function GoogleMap({
     }
   }, [shops, onSelect]);
 
-    // ── 現在地マーカー（青丸・ふわふわアニメ） ─────────────────
-    useEffect(() => {
-      const map = mapRef.current;
-      if (!map || !window.google || !userLocation) return;
+  // 現在地マーカー（ふわふわアニメの青点）
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !window.google || !userLocation) return;
 
-      const pos = new google.maps.LatLng(userLocation.lat, userLocation.lng);
+    const pos = new google.maps.LatLng(userLocation.lat, userLocation.lng);
 
-      // AdvancedMarker 用のHTML要素を作成
-      const el = document.createElement("div");
-      el.className = "km-user-dot";  // ← さきほど追加したCSSクラス
-
-      // 既存が google.maps.Marker の場合は消す
-      if (userMarkerRef.current && "setMap" in userMarkerRef.current) {
-        (userMarkerRef.current as any).setMap(null);
-        userMarkerRef.current = null;
+    // 既存の現在地マーカーを除去（型で分岐）
+    if (userMarkerRef.current) {
+      if (userMarkerRef.current instanceof google.maps.Marker) {
+        userMarkerRef.current.setMap(null);
+      } else {
+        // AdvancedMarkerElement
+        userMarkerRef.current.map = null;
       }
+      userMarkerRef.current = null;
+    }
 
-      // AdvancedMarkerElement で設置
-      // 型: google.maps.marker.AdvancedMarkerElement
-      const advMarker = new google.maps.marker.AdvancedMarkerElement({
-        map,
-        position: pos,
-        content: el,
-        // ユーザー操作を妨げないよう衝突回避をスマートに
-        collisionBehavior: google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
-        title: "Your location",
-      });
+    // AdvancedMarker 用の HTML
+    const el = document.createElement("div");
+    el.className = "km-user-dot";
 
-      // 参照を保持（型が違うので any で束ねる）
-      (userMarkerRef as any).current = advMarker;
+    const advMarker = new google.maps.marker.AdvancedMarkerElement({
+      map,
+      position: pos,
+      content: el,
+      collisionBehavior:
+        google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
+      title: "Your location",
+    });
 
-      // 位置更新（userLocation が変わるたび）
-      advMarker.position = pos;
+    userMarkerRef.current = advMarker;
 
-      return () => {
-        advMarker.map = null;
-      };
-    }, [userLocation]);
+    // 位置更新（依存: userLocation）
+    advMarker.position = pos;
 
-  // ── アクティブ店にフォーカス（スライド連動） ───────────────
+    return () => {
+      advMarker.map = null;
+    };
+  }, [userLocation]);
+
+  // スライド連動フォーカス
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !activeId) return;
@@ -157,8 +157,6 @@ export default function GoogleMap({
     map.panTo(pos);
     if ((map.getZoom() ?? 0) < 15) map.setZoom(15);
 
-
-    // 目立つように軽くバウンス
     m.setAnimation(google.maps.Animation.BOUNCE);
     const t = setTimeout(() => m.setAnimation(null), 650);
     return () => clearTimeout(t);
