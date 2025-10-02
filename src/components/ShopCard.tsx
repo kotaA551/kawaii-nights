@@ -12,7 +12,7 @@ export default function ShopCard({
 
   return (
     <article
-      className="k-card overflow-hidden active:scale-[0.99] transition"
+      className="w-full k-card overflow-hidden active:scale-[0.99] transition"
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
