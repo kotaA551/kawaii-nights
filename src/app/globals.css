@@ -28,3 +28,33 @@ body { background: #ffffff !important; }
   to { transform: translateY(0); opacity: 1; }
 }
 .animate-sheet-up { animation: sheet-up 160ms ease-out; }
+
+/* 現在地マーカーのアニメーション */
+@keyframes float-y {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(66,133,244,0.35); }
+  70%  { box-shadow: 0 0 0 14px rgba(66,133,244,0); }
+  100% { box-shadow: 0 0 0 0 rgba(66,133,244,0); }
+}
+
+/* 青い現在地ドット（AdvancedMarker用の中身） */
+.km-user-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #4285F4;            /* 青 */
+  border: 2px solid #fff;         /* 白ふち */
+  animation:
+    float-y 2.2s ease-in-out infinite,
+    pulse-ring 1.8s ease-out infinite;
+  will-change: transform, box-shadow;
+  pointer-events: auto;           /* hover効かせる */
+}
+.km-user-dot:hover {
+  transform: translateY(-8px) scale(1.06);
+}

@@ -36,6 +36,7 @@ export default function GoogleMap({
       new Loader({
         apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
         version: "weekly",
+        libraries: ["marker"], 
       }),
     []
   );
@@ -103,32 +104,44 @@ export default function GoogleMap({
     }
   }, [shops, onSelect]);
 
-  // ── 現在地マーカー（青丸） ─────────────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !window.google || !userLocation) return;
+    // ── 現在地マーカー（青丸・ふわふわアニメ） ─────────────────
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !window.google || !userLocation) return;
 
-    const pos = new google.maps.LatLng(userLocation.lat, userLocation.lng);
+      const pos = new google.maps.LatLng(userLocation.lat, userLocation.lng);
 
-    if (!userMarkerRef.current) {
-      userMarkerRef.current = new google.maps.Marker({
-        position: pos,
+      // AdvancedMarker 用のHTML要素を作成
+      const el = document.createElement("div");
+      el.className = "km-user-dot";  // ← さきほど追加したCSSクラス
+
+      // 既存が google.maps.Marker の場合は消す
+      if (userMarkerRef.current && "setMap" in userMarkerRef.current) {
+        (userMarkerRef.current as any).setMap(null);
+        userMarkerRef.current = null;
+      }
+
+      // AdvancedMarkerElement で設置
+      // 型: google.maps.marker.AdvancedMarkerElement
+      const advMarker = new google.maps.marker.AdvancedMarkerElement({
         map,
-        // 青丸のシンボル
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: "#4285F4",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
-        },
+        position: pos,
+        content: el,
+        // ユーザー操作を妨げないよう衝突回避をスマートに
+        collisionBehavior: google.maps.CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY,
         title: "Your location",
       });
-    } else {
-      userMarkerRef.current.setPosition(pos);
-    }
-  }, [userLocation]);
+
+      // 参照を保持（型が違うので any で束ねる）
+      (userMarkerRef as any).current = advMarker;
+
+      // 位置更新（userLocation が変わるたび）
+      advMarker.position = pos;
+
+      return () => {
+        advMarker.map = null;
+      };
+    }, [userLocation]);
 
   // ── アクティブ店にフォーカス（スライド連動） ───────────────
   useEffect(() => {
