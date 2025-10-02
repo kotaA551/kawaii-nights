@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import Image from "next/image";
 import Carousel from "@/components/Carousel";
 import type { Shop } from "@/lib/types";
+import { usePlacePhotos } from "@/lib/usePlacePhotos";
 
 type PriceInfo = {
   currency: string;
@@ -23,20 +23,19 @@ type ExtraShopFields = {
 export default function ShopModal({
   shop,
   onClose,
-}: {
-  shop: Shop & Partial<ExtraShopFields>;
-  onClose: () => void;
-}) {
+}: { shop: Shop & ExtraShopFields; onClose: () => void }) {
   const [active, setActive] = useState(0);
+
+  const { photos } = usePlacePhotos(shop, { maxWidth: 1400, maxHeight: 900, maxCount: 8 });
+  const googlePhotos = photos ?? [];
+  const hasGoogle = googlePhotos.length > 0;
 
   // 背景スクロール固定
   useEffect(() => {
     const html = document.documentElement;
     const prev = html.style.overflow;
     html.style.overflow = "hidden";
-    return () => {
-      html.style.overflow = prev;
-    };
+    return () => { html.style.overflow = prev; };
   }, []);
 
   // Escapeキーで閉じる
@@ -76,8 +75,8 @@ export default function ShopModal({
           </button>
         </div>
 
-        {/* 写真ギャラリー（横スワイプ） */}
-        {shop.images && shop.images.length > 0 && (
+        {/* 写真ギャラリー */}
+        {(hasGoogle || (shop.images && shop.images.length > 0)) && (
           <div className="px-4 pt-3 pb-1 relative">
             <Carousel
               autoplay={0}
@@ -85,23 +84,31 @@ export default function ShopModal({
               className="rounded-xl overflow-hidden"
               onIndexChange={setActive}
             >
-              {shop.images.map((src, i) => (
-                <div key={i} className="relative w-full h-64">
-                  <Image
-                    src={src}
-                    alt={`${shop.name} 写真${i + 1}`}
-                    fill
-                    priority={i === 0}
-                    sizes="100vw"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
+              {hasGoogle
+                ? googlePhotos.map((p, i) => (
+                    <img
+                      key={`g-${i}`}
+                      src={p.url}
+                      alt={`${shop.name} photo ${i + 1}`}
+                      loading="lazy"
+                      className="w-full h-64 object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ))
+                : (shop.images ?? []).map((src, i) => (
+                    <img
+                      key={`local-${i}`}
+                      src={src}
+                      alt={`${shop.name} 写真${i + 1}`}
+                      loading="lazy"
+                      className="w-full h-64 object-cover"
+                    />
+                  ))}
             </Carousel>
 
             {/* ページインジケータ */}
             <div className="mt-2 flex justify-center gap-2">
-              {shop.images.map((_, i) => (
+              {(hasGoogle ? googlePhotos : shop.images ?? []).map((_, i) => (
                 <span
                   key={i}
                   className={`w-2 h-2 rounded-full transition ${
@@ -110,12 +117,21 @@ export default function ShopModal({
                 />
               ))}
             </div>
+
+            {/* attribution（規約で必須） */}
+            {hasGoogle && googlePhotos[active]?.attributionsHtml?.length > 0 && (
+              <div className="mt-1 text-[10px] text-zinc-500 text-center space-x-2">
+                {googlePhotos[active].attributionsHtml.map((html, idx) => (
+                  <span key={idx} dangerouslySetInnerHTML={{ __html: html }} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {/* 基本情報 */}
         <div className="px-4 pb-5">
-          <p className="mt-2 text-sm text-zinc-600">Address:{shop.address}</p>
+          <p className="mt-2 text-sm text-zinc-600">Address: {shop.address}</p>
           {shop.concept && <p className="mt-1">{shop.concept}</p>}
           {shop.priceRange && <p className="mt-1">💰 {shop.priceRange}</p>}
           {shop.hours && <p className="mt-1">🕑 {shop.hours}</p>}
@@ -129,9 +145,8 @@ export default function ShopModal({
             Open Google Map
           </a>
 
-          {/* Rating & Price（任意フィールドがある場合のみ表示） */}
+          {/* Rating & Price */}
           <div className="mt-3 space-y-1 text-sm">
-            {/* ★評価 */}
             {typeof shop.ratingAvg === "number" && (
               <p aria-label="Rating">
                 {"★".repeat(Math.round(shop.ratingAvg))}
@@ -145,18 +160,12 @@ export default function ShopModal({
                 </span>
               </p>
             )}
-            {/* 料金相場 */}
             {shop.price && (
               <p aria-label="Price range">
                 💰 {shop.price.currency}
-                {shop.price.coverCharge
-                  ? ` · Cover ${shop.price.coverCharge}`
-                  : ""}
-                {(shop.price.avgSpendMin ?? shop.price.avgSpendMax) !==
-                  undefined &&
-                  ` · Avg ${shop.price.avgSpendMin ?? "?"}–${
-                    shop.price.avgSpendMax ?? "?"
-                  }`}
+                {shop.price.coverCharge ? ` · Cover ${shop.price.coverCharge}` : ""}
+                {(shop.price.avgSpendMin ?? shop.price.avgSpendMax) !== undefined &&
+                  ` · Avg ${shop.price.avgSpendMin ?? "?"}–${shop.price.avgSpendMax ?? "?"}`}
                 {shop.price.notes ? ` · ${shop.price.notes}` : ""}
               </p>
             )}

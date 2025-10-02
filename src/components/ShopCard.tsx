@@ -1,11 +1,14 @@
 "use client";
 import type { Shop } from "@/lib/types";
+import { usePlacePhotos } from "@/lib/usePlacePhotos";
 
 export default function ShopCard({
   shop,
   onClick,
 }: { shop: Shop; onClick?: () => void }) {
-  const cover = shop.images?.[0] ?? "";
+  const { photos } = usePlacePhotos(shop, { maxWidth: 1200, maxHeight: 675, maxCount: 1 });
+  const googleCover = photos && photos[0]?.url;
+  const cover = googleCover ?? shop.images?.[0] ?? "";
 
   return (
     <article
@@ -14,7 +17,7 @@ export default function ShopCard({
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
-      {/* カバー画像（なければグラデ） */}
+      {/* 16:9 固定・object-cover */}
       {cover ? (
         <div className="relative w-full aspect-[16/9]">
           <img
@@ -22,17 +25,15 @@ export default function ShopCard({
             alt={shop.name}
             className="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
+            referrerPolicy="no-referrer"
           />
         </div>
       ) : (
         <div className="w-full aspect-[16/9] bg-gradient-to-tr from-pink-200 to-rose-200" />
       )}
 
-      {/* 本文 */}
       <div className="p-4 space-y-2">
-        <h3 className="font-extrabold text-zinc-900 line-clamp-1">
-          {shop.name}
-        </h3>
+        <h3 className="font-extrabold text-zinc-900 line-clamp-1">{shop.name}</h3>
         <p className="text-xs text-zinc-500 line-clamp-1">{shop.address}</p>
         <div className="flex flex-wrap gap-2 pt-1">
           {shop.concept && <span className="pill">{shop.concept}</span>}
