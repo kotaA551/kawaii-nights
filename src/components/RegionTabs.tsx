@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react"; 
 
 export type RegionKey =
   | "tokyo"
@@ -60,29 +60,34 @@ export default function RegionTabs({
         <button
           type="button"
           aria-label="Show other areas"
-          className="md:hidden inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-3 py-1.5 bg-white active:scale-[0.98]"
+          className="md:hidden inline-flex items-center gap-1 border_b border-pink-600 px-3 py-1.5 bg-white active:scale-[0.98]"
           onClick={() => setOpenMobileBar((v) => !v)}
         >
           <span className="font-semibold">{LABELS[value]}</span>
-          <ChevronRight className={`h-4 w-4 transition-transform ${openMobileBar ? "rotate-90" : ""}`} />
+          <ChevronDown className={`h-4 w-4 transition-transform ${openMobileBar ? "rotate-90" : ""}`} />
         </button>
       </div>
 
-      {/* PC: 7つ横並び */}
-      <div className="hidden md:flex gap-2 mt-2 px-2">
+        {/* PC: 7つ横並び */}
+        <div className="hidden md:flex gap-4 mt-2 px-2 border-b border-zinc-200 justify-center">
         {regions.map((r) => (
-          <button
+            <button
             key={r}
             onClick={() => handlePick(r)}
-            className={`pill ${r === value ? "pill-active" : ""}`}
-          >
+            className={`
+                px-3 py-1.5 bg-white
+                ${r === value
+                ? "border-b-2 border-pink-600 text-pink-600 font-semibold"
+                : "text-zinc-600 hover:text-pink-600"}
+            `}
+            >
             {LABELS[r]}
-          </button>
+            </button>
         ))}
-      </div>
+        </div>
 
-      {/* モバイル：選択中のみ + 右矢印で下に他地域バー */}
-      <div className="md:hidden mt-2 px-2">
+      {/* モバイル：選択中のみ + 下矢印で下に他地域バー */}
+      <div className="md:hidden mt-2 px-2 text-center border-b border-zinc-200 pb-2">
         {/* 選択中タブをあえてここでも表示しておく（視覚的安定） */}
         <div className="inline-flex">
           <span className="pill pill-active">{LABELS[value]}</span>

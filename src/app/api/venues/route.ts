@@ -16,7 +16,7 @@ type VenueRow = {
   price_range: string | null;
   hours: string | null;
   images: string[] | null;
-  // 将来使うなら:
+  area: string | null;
   place_id?: string | null;
 };
 
@@ -49,7 +49,7 @@ type ApiShop = {
   priceRange?: string;
   hours?: string;
   images?: string[];
-  // 追加情報（あれば）
+  area?: string;
   ratingAvg?: number;
   ratingCount?: number;
   price?: {
@@ -71,7 +71,7 @@ export async function GET() {
     supabase
       .from("venues")
       .select(
-        "id,name,address,lat,lng,concept,price_range,hours,images"
+        "id,name,address,lat,lng,concept,price_range,hours,images,area"
       ),
     supabase.from("venue_stats").select("venue_id,rating_avg,rating_count"),
     supabase
@@ -108,6 +108,7 @@ export async function GET() {
       priceRange: v.price_range ?? undefined,
       hours: v.hours ?? undefined,
       images: v.images ?? undefined,
+      area: v.area ?? undefined, 
     };
 
     if (s) {
