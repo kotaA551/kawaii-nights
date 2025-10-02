@@ -142,7 +142,7 @@ export default function HomeMobileFirst() {
         <div className="mt-2">
           <Carousel
             autoplay={3000}
-            slideClassName="min-w-full"
+            slideClassName="w-full"
             className="rounded-2xl overflow-hidden"
             onIndexChange={(i) => setActiveIndex(i)}
           >
