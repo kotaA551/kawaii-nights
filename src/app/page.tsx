@@ -110,7 +110,7 @@ export default function HomeMobileFirst() {
   return (
     <>
       {/* === 地域タブ & 地域別グリッド === */}
-      <section className="mt-3">
+      <section className="mt-3 mb-10">
         <RegionTabs value={region} onChange={setRegion} />
 
         <div className="mt-2">
