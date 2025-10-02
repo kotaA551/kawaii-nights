@@ -10,7 +10,7 @@ export default function ShopCard({
 
   return (
     <article
-      className="k-card h-full flex flex-col overflow-hidden active:scale-[0.99] transition"
+      className="k-card w-full flex flex-col overflow-hidden active:scale-[0.99] transition"
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
