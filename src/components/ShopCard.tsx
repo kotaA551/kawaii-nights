@@ -21,10 +21,9 @@ export default function ShopCard({
           <Image
             src={cover}
             alt={shop.name}
-            fill              // ← 親要素に絶対配置して全体を覆う
+            fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw" // 適当でOK。レスポンシブ時の最適化
-            priority={false}
+            sizes="100vw"
           />
         </div>
       ) : (
