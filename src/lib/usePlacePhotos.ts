@@ -1,8 +1,8 @@
 // src/lib/usePlacePhotos.ts
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { useEffect, useState } from "react";
+import { googleLoader } from "@/lib/googleLoader";
 
 type ShopLike = {
   name: string;
@@ -14,7 +14,7 @@ type ShopLike = {
 
 export type PlacePhotoItem = {
   url: string;
-  attributionsHtml: string[]; // 必ず小さく表示する（規約）
+  attributionsHtml: string[];
 };
 
 const cache = new Map<string, PlacePhotoItem[]>();
@@ -25,17 +25,8 @@ export function usePlacePhotos(
 ) {
   const { maxWidth = 1280, maxHeight = 960, maxCount = 6 } = opts;
   const [photos, setPhotos] = useState<PlacePhotoItem[] | null>(null);
-  const [resolvedPlaceId, setResolvedPlaceId] = useState<string | null>(shop.placeId ?? null);
-
-  // Loader を使い回す
-  const loader = useMemo(
-    () =>
-      new Loader({
-        apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-        version: "weekly",
-        libraries: ["places"],
-      }),
-    []
+  const [resolvedPlaceId, setResolvedPlaceId] = useState<string | null>(
+    shop.placeId ?? null
   );
 
   // Place ID が無ければ Find Place で推定
@@ -43,13 +34,14 @@ export function usePlacePhotos(
     let cancelled = false;
 
     (async () => {
-      await loader.load();
+      await googleLoader.load();
       if (cancelled) return;
 
-      // すでにIDがあればスキップ
-      if (resolvedPlaceId) return;
+      if (resolvedPlaceId) return; // すでにIDがある場合はスキップ
 
-      const svc = new google.maps.places.PlacesService(document.createElement("div"));
+      const svc = new google.maps.places.PlacesService(
+        document.createElement("div")
+      );
 
       const query =
         shop.address && shop.address.trim().length > 0
@@ -64,7 +56,11 @@ export function usePlacePhotos(
         },
         (res, status) => {
           if (cancelled) return;
-          if (status === google.maps.places.PlacesServiceStatus.OK && res && res[0]?.place_id) {
+          if (
+            status === google.maps.places.PlacesServiceStatus.OK &&
+            res &&
+            res[0]?.place_id
+          ) {
             setResolvedPlaceId(res[0].place_id);
           } else {
             setResolvedPlaceId(null);
@@ -76,14 +72,14 @@ export function usePlacePhotos(
     return () => {
       cancelled = true;
     };
-  }, [loader, shop.name, shop.address, shop.lat, shop.lng, resolvedPlaceId]);
+  }, [shop.name, shop.address, shop.lat, shop.lng, resolvedPlaceId]);
 
   // 写真を取得
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      await loader.load();
+      await googleLoader.load();
       if (cancelled) return;
 
       if (!resolvedPlaceId) {
@@ -91,36 +87,44 @@ export function usePlacePhotos(
         return;
       }
 
-      // キャッシュ
+      // キャッシュ利用
       const cacheKey = `${resolvedPlaceId}:${maxWidth}x${maxHeight}:${maxCount}`;
       if (cache.has(cacheKey)) {
         setPhotos(cache.get(cacheKey)!);
         return;
       }
 
-      const svc = new google.maps.places.PlacesService(document.createElement("div"));
+      const svc = new google.maps.places.PlacesService(
+        document.createElement("div")
+      );
       svc.getDetails(
         {
           placeId: resolvedPlaceId,
-          fields: ["photos"], // 必要最小限
+          fields: ["photos"],
         },
         (place, status) => {
           if (cancelled) return;
-          if (status !== google.maps.places.PlacesServiceStatus.OK || !place) {
+          if (
+            status !== google.maps.places.PlacesServiceStatus.OK ||
+            !place
+          ) {
             setPhotos([]);
             return;
           }
 
-          const items =
+            const items =
             (place.photos ?? [])
-              .slice(0, maxCount)
-              .map((p) => {
+                .slice(0, maxCount)
+                .map((p) => {
                 const url = p.getUrl({ maxWidth, maxHeight });
-                // html_attributions は string[]（<a>タグ文字列など）
-                // @ts-expect-error types may vary slightly across versions
-                const atts: string[] = p.html_attributions ?? p.author_attributions ?? [];
+
+                // 型の揺れ対策：公式型は html_attributions のみ
+                const atts =
+                    (p as unknown as { html_attributions?: string[] }).html_attributions ?? [];
+
                 return { url, attributionsHtml: atts };
-              }) ?? [];
+                }) ?? [];
+
 
           cache.set(cacheKey, items);
           setPhotos(items);
@@ -131,7 +135,7 @@ export function usePlacePhotos(
     return () => {
       cancelled = true;
     };
-  }, [loader, resolvedPlaceId, maxWidth, maxHeight, maxCount]);
+  }, [resolvedPlaceId, maxWidth, maxHeight, maxCount]);
 
   return { photos, placeId: resolvedPlaceId };
 }

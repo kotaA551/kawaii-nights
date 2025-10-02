@@ -2,9 +2,9 @@
 "use client";
 
 /// <reference types="google.maps" />
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { Shop } from "@/lib/types";
-import { Loader } from "@googlemaps/js-api-loader";
+import { googleLoader } from "@/lib/googleLoader";
 
 type Props = {
   shops: Shop[];
@@ -26,29 +26,18 @@ export default function GoogleMap({
   const divRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  // 店舗マーカー
   const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
-  // 現在地マーカー（Marker または AdvancedMarkerElement）
   const userMarkerRef = useRef<
     google.maps.Marker | google.maps.marker.AdvancedMarkerElement | null
   >(null);
-
-  const loader = useMemo(
-    () =>
-      new Loader({
-        apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-        version: "weekly",
-        libraries: ["marker"], // AdvancedMarker 用
-      }),
-    []
-  );
 
   // 初期化
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!divRef.current || mapRef.current) return;
-      await loader.load();
+
+      await googleLoader.load();
       if (cancelled) return;
 
       const map = new google.maps.Map(divRef.current, {
@@ -64,7 +53,7 @@ export default function GoogleMap({
     return () => {
       cancelled = true;
     };
-  }, [loader]);
+  }, []); // loaderは共通なので依存配列に入れなくていい
 
   // 店舗マーカー追加/更新/削除 + フィット
   useEffect(() => {
@@ -102,25 +91,22 @@ export default function GoogleMap({
     }
   }, [shops, onSelect]);
 
-  // 現在地マーカー（ふわふわアニメの青点）
+  // 現在地マーカー
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !window.google || !userLocation) return;
 
     const pos = new google.maps.LatLng(userLocation.lat, userLocation.lng);
 
-    // 既存の現在地マーカーを除去（型で分岐）
     if (userMarkerRef.current) {
       if (userMarkerRef.current instanceof google.maps.Marker) {
         userMarkerRef.current.setMap(null);
       } else {
-        // AdvancedMarkerElement
         userMarkerRef.current.map = null;
       }
       userMarkerRef.current = null;
     }
 
-    // AdvancedMarker 用の HTML
     const el = document.createElement("div");
     el.className = "km-user-dot";
 
@@ -134,8 +120,6 @@ export default function GoogleMap({
     });
 
     userMarkerRef.current = advMarker;
-
-    // 位置更新（依存: userLocation）
     advMarker.position = pos;
 
     return () => {
