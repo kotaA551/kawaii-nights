@@ -43,6 +43,12 @@ export default function HomeMobileFirst() {
   // ★ 地域タブの選択（デフォルトTokyo）
   const [region, setRegion] = useState<RegionKey>("tokyo");
 
+  const [areaVisible, setAreaVisible] = useState(10);
+
+  useEffect(() => {
+  setAreaVisible(10);
+}, [region]);
+
   // 位置情報
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
@@ -103,23 +109,32 @@ export default function HomeMobileFirst() {
 
   return (
     <>
-      {/* === 地域タブ & 地域別スライド === */}
+      {/* === 地域タブ & 地域別グリッド === */}
       <section className="mt-3">
         <RegionTabs value={region} onChange={setRegion} />
 
         <div className="mt-2">
           {regionalShops.length > 0 ? (
-            <Carousel
-              autoplay={3000}
-              slideClassName="min-w-full"
-              className="rounded-2xl overflow-hidden"
-            >
-              {regionalShops.slice(0, 12).map((s) => (
-                <div key={s.id} className="h-full">
-                  <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
+            <>
+              {/* グリッド：スマホ2列 / PC4列 */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                {regionalShops.slice(0, areaVisible).map((s) => (
+                  <ShopCard key={s.id} shop={s} onClick={() => setSelectedId(s.id)} />
+                ))}
+              </div>
+
+              {/* Show more（10件ずつ追加） */}
+              {areaVisible < regionalShops.length && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    onClick={() => setAreaVisible(v => v + 10)}
+                    className="px-4 py-2 rounded-xl bg-white border border-zinc-200 text-pink-600 font-semibold hover:bg-pink-50 active:scale-[0.98]"
+                  >
+                    Show more
+                  </button>
                 </div>
-              ))}
-            </Carousel>
+              )}
+            </>
           ) : (
             <div className="k-card p-6 text-center text-sm text-zinc-500">
               No shops found in {region.charAt(0).toUpperCase() + region.slice(1)} yet.
