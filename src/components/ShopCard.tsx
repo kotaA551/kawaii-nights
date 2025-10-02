@@ -10,28 +10,29 @@ export default function ShopCard({
 
   return (
     <article
-      className="k-card overflow-hidden active:scale-[0.99] transition"
+      className="k-card h-full flex flex-col overflow-hidden active:scale-[0.99] transition"
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
-      {/* カバー画像（なければグラデ） */}
+      {/* 画像（常に16:9の枠にフィット、はみ出しはカット） */}
       {cover ? (
-        <div className="relative w-full aspect-[16/9]">
+        <div className="relative w-full aspect-[16/9] flex-none">
           <Image
             src={cover}
             alt={shop.name}
             fill
             className="object-cover"
             sizes="100vw"
+            priority={false}
           />
         </div>
       ) : (
-        <div className="w-full aspect-[16/9] bg-gradient-to-tr from-pink-200 to-rose-200" />
+        <div className="w-full aspect-[16/9] flex-none bg-gradient-to-tr from-pink-200 to-rose-200" />
       )}
 
-      {/* 本文 */}
-      <div className="p-4 space-y-2">
+      {/* テキスト（固定高さ） */}
+      <div className="p-4 space-y-2 flex-none h-[104px]">
         <h3 className="font-extrabold text-zinc-900 line-clamp-1">
           {shop.name}
         </h3>
