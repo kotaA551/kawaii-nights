@@ -97,7 +97,7 @@ export default function RegionTabs({
                   <li key={r}>
                     <button
                       onClick={() => handlePick(r)}
-                      className="w-full text-left px-3 py-2 hover:bg-pink-50"
+                      className="w-full text-center px-3 py-2 hover:bg-pink-50"
                     >
                       {LABELS[r]}
                     </button>
