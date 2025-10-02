@@ -7,6 +7,7 @@ import Carousel from "@/components/Carousel";
 import ShopCard from "@/components/ShopCard";
 import ShopModal from "@/components/ShopModal";
 import GoogleMap from "@/components/GoogleMap";
+import RegionTabs, { type RegionKey } from "@/components/RegionTabs";
 
 type ApiShop = Omit<
   Shop,
@@ -36,8 +37,11 @@ export default function HomeMobileFirst() {
 
   // モーダルで開く店ID
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  // スライドの現在インデックス
+  // スライドの現在インデックス（Nearby用）
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // ★ 地域タブの選択（デフォルトTokyo）
+  const [region, setRegion] = useState<RegionKey>("tokyo");
 
   // 位置情報
   useEffect(() => {
@@ -58,7 +62,7 @@ export default function HomeMobileFirst() {
     })();
   }, []);
 
-  // 距離順
+  // === 近い順（Nearby） ===
   const withDistance = useMemo(() => {
     if (!geo) return shops.map((s) => ({ s, d: Number.MAX_SAFE_INTEGER }));
     const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -81,7 +85,7 @@ export default function HomeMobileFirst() {
     [withDistance]
   );
 
-  // 地図フォーカス用ID
+  // 地図フォーカス用ID（Nearbyのスライドに合わせる）
   const activeId = nearby[activeIndex]?.id ?? null;
 
   // モーダルに表示する店
@@ -90,10 +94,42 @@ export default function HomeMobileFirst() {
     [nearby, selectedId]
   );
 
+  // === 地域別の絞り込み ===
+  // Shop.area は 'tokyo' | 'osaka' | 'kyoto' | 'fukuoka' | 'nagoya' | 'sendai' | 'sapporo' を想定
+  const regionalShops = useMemo(() => {
+    // areaが小文字で入っている前提。もしDBが大文字混在なら .toLowerCase() で吸収する
+    return shops.filter((s) => (s.area?.toLowerCase?.() ?? "") === region);
+  }, [shops, region]);
+
   return (
     <>
-      {/* Nearby Shops */}
+      {/* === 地域タブ & 地域別スライド === */}
       <section className="mt-3">
+        <RegionTabs value={region} onChange={setRegion} />
+
+        <div className="mt-2">
+          {regionalShops.length > 0 ? (
+            <Carousel
+              autoplay={3000}
+              slideClassName="min-w-full"
+              className="rounded-2xl overflow-hidden"
+            >
+              {regionalShops.slice(0, 12).map((s) => (
+                <div key={s.id} className="h-full">
+                  <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
+                </div>
+              ))}
+            </Carousel>
+          ) : (
+            <div className="k-card p-6 text-center text-sm text-zinc-500">
+              No shops found in {region.charAt(0).toUpperCase() + region.slice(1)} yet.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* === Nearby Shops === */}
+      <section className="my-4">
         <div className="flex items-baseline justify-between px-2">
           <h2 className="text-lg font-bold">Nearby Shops</h2>
           {geo && (
@@ -106,15 +142,12 @@ export default function HomeMobileFirst() {
         <div className="mt-2">
           <Carousel
             autoplay={3000}
-            slideClassName="w-full"
+            slideClassName="min-w-full"
             className="rounded-2xl overflow-hidden"
-            onIndexChange={(i) => {
-              setActiveIndex(i);
-            }}
+            onIndexChange={(i) => setActiveIndex(i)}
           >
             {nearby.slice(0, 12).map((s) => (
               <div key={s.id} className="h-full">
-                {/* カードクリック時だけモーダルを開く */}
                 <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
               </div>
             ))}
@@ -122,7 +155,7 @@ export default function HomeMobileFirst() {
         </div>
       </section>
 
-      {/* Map (Google Maps) */}
+      {/* === Map (Google Maps) === */}
       <section className="my-4">
         <div className="flex items-baseline justify-between px-2">
           <h2 className="text-lg font-bold">Search by GooGle Map</h2>
