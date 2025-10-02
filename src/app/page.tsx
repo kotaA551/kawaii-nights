@@ -102,19 +102,21 @@ export default function HomeMobileFirst() {
         </div>
 
         <div className="mt-2">
-<Carousel
-  autoplay={3000}
-  slideClassName="min-w-full"
-  className="rounded-2xl overflow-hidden h-[calc(100vw*9/16+104px)]"
-  onIndexChange={(i) => setActiveIndex(i)}
->
-  {nearby.slice(0, 12).map((s) => (
-    <div key={s.id} className="h-full">
-      <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
-    </div>
-  ))}
-</Carousel>
-
+          <Carousel
+            autoplay={3000}
+            slideClassName="min-w-full"
+            className="rounded-2xl overflow-hidden"
+            onIndexChange={(i) => {
+              setActiveIndex(i);
+            }}
+          >
+            {nearby.slice(0, 12).map((s) => (
+              <div key={s.id} className="h-full">
+                {/* カードクリック時だけモーダルを開く */}
+                <ShopCard shop={s} onClick={() => setSelectedId(s.id)} />
+              </div>
+            ))}
+          </Carousel>
         </div>
       </section>
 

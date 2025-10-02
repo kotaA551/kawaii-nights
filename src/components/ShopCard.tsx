@@ -1,6 +1,5 @@
 "use client";
 import type { Shop } from "@/lib/types";
-import Image from "next/image";
 
 export default function ShopCard({
   shop,
@@ -10,29 +9,27 @@ export default function ShopCard({
 
   return (
     <article
-      className="k-card w-full flex flex-col overflow-hidden active:scale-[0.99] transition"
+      className="k-card overflow-hidden active:scale-[0.99] transition"
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
-      {/* 画像（常に16:9の枠にフィット、はみ出しはカット） */}
+      {/* カバー画像（なければグラデ） */}
       {cover ? (
-        <div className="relative w-full aspect-[16/9] flex-none">
-          <Image
+        <div className="relative w-full aspect-[16/9]">
+          <img
             src={cover}
             alt={shop.name}
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority={false}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
           />
         </div>
       ) : (
-        <div className="w-full aspect-[16/9] flex-none bg-gradient-to-tr from-pink-200 to-rose-200" />
+        <div className="w-full aspect-[16/9] bg-gradient-to-tr from-pink-200 to-rose-200" />
       )}
 
-      {/* テキスト（固定高さ） */}
-      <div className="p-4 space-y-2 flex-none h-[104px]">
+      {/* 本文 */}
+      <div className="p-4 space-y-2">
         <h3 className="font-extrabold text-zinc-900 line-clamp-1">
           {shop.name}
         </h3>
