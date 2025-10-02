@@ -14,4 +14,5 @@ export type Shop = {
   alcohol?: 'ok' | 'ng' | 'space' | 'separate' | string;
   smoking?: 'ok' | 'ng' | 'space' | 'separate' | string;
   images?: string[];
+  placeId?: string | null
 };

@@ -17,6 +17,7 @@ type ApiShop = Omit<
   images?: string[] | null;
   alcohol?: Shop["alcohol"] | null;
   smoking?: Shop["smoking"] | null;
+  placeId?: string | null;
 };
 
 const normalizeShop = (x: ApiShop): Shop => ({
@@ -26,6 +27,7 @@ const normalizeShop = (x: ApiShop): Shop => ({
   images: x.images ?? undefined,
   alcohol: x.alcohol ?? undefined,
   smoking: x.smoking ?? undefined,
+  placeId: x.placeId ?? undefined,
 });
 
 export default function HomeMobileFirst() {
