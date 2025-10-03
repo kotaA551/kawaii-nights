@@ -38,6 +38,7 @@ export default function ShopCard({
         <div className="flex flex-wrap gap-2 pt-1">
           {shop.concept && <span className="pill">{shop.concept}</span>}
           {shop.priceRange && <span className="pill">{shop.priceRange}</span>}
+          {shop.hours && <span className="pill"> {shop.hours}</span>}
         </div>
       </div>
     </article>

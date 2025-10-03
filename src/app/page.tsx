@@ -43,10 +43,10 @@ export default function HomeMobileFirst() {
   // ★ 地域タブの選択（デフォルトTokyo）
   const [region, setRegion] = useState<RegionKey>("tokyo");
 
-  const [areaVisible, setAreaVisible] = useState(10);
+  const [areaVisible, setAreaVisible] = useState(4);
 
   useEffect(() => {
-  setAreaVisible(10);
+  setAreaVisible(4);
 }, [region]);
 
   // 位置情報
@@ -123,12 +123,12 @@ export default function HomeMobileFirst() {
                 ))}
               </div>
 
-              {/* Show more（10件ずつ追加） */}
+              {/* Show more（4件ずつ追加） */}
               {areaVisible < regionalShops.length && (
                 <div className="flex justify-center mt-4">
                   <button
-                    onClick={() => setAreaVisible(v => v + 10)}
-                    className="px-4 py-2 rounded-xl bg-white border border-zinc-200 text-pink-600 font-semibold hover:bg-pink-50 active:scale-[0.98]"
+                    onClick={() => setAreaVisible((v) => v + 4)}
+                    className="px-4 py-2 rounded-xl bg-pink-600 text-white font-semibold"
                   >
                     Show more
                   </button>

@@ -133,8 +133,8 @@ export default function ShopModal({
         <div className="px-4 pb-5">
           <p className="mt-2 text-sm text-zinc-600">Address: {shop.address}</p>
           {shop.concept && <p className="mt-1">{shop.concept}</p>}
-          {shop.priceRange && <p className="mt-1">💰 {shop.priceRange}</p>}
-          {shop.hours && <p className="mt-1">🕑 {shop.hours}</p>}
+          {shop.priceRange && <p className="mt-1">{shop.priceRange}</p>}
+          {shop.hours && <p className="mt-1">{shop.hours}</p>}
 
           <a
             href={`https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`}
@@ -162,7 +162,7 @@ export default function ShopModal({
             )}
             {shop.price && (
               <p aria-label="Price range">
-                💰 {shop.price.currency}
+                {shop.price.currency}
                 {shop.price.coverCharge ? ` · Cover ${shop.price.coverCharge}` : ""}
                 {(shop.price.avgSpendMin ?? shop.price.avgSpendMax) !== undefined &&
                   ` · Avg ${shop.price.avgSpendMin ?? "?"}–${shop.price.avgSpendMax ?? "?"}`}
