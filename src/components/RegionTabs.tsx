@@ -57,7 +57,7 @@ export default function RegionTabs({
         <button
           type="button"
           aria-label="Show other areas"
-          className="md:hidden inline-flex items-center gap-1 px-3 py-1.5 border-b-2 border-pink-600 text-pink-600 font-semibold"
+          className="md:hidden inline-flex items-center gap-1 px-3 py-1.5 border border-pink-600 rounded-xl text-pink-600 font-semibold"
           onClick={() => setOpenMobileBar((v) => !v)}
         >
           <span className="font-semibold">{LABELS[value]}</span>
@@ -87,12 +87,12 @@ export default function RegionTabs({
       </div>
 
       {/* モバイル：候補は“選択できるタブのみ”を1列で並べる */}
-      <div className="md:hidden mt-2 px-2">
+      <div className="md:hidden mt-2">
         {openMobileBar && (
-          <div className="rounded-lg border border-zinc-200 bg-white shadow-sm">
-            <ul className="divide-y divide-zinc-200">
+          <div className="rounded-lg border border-pink-600 bg-white text-pink-600 font-semibold">
+            <ul className="divide-y divide-pink-300">
               {regions
-                .filter((r) => r !== value) // ← 選択中は除外
+                .filter((r) => r !== value)
                 .map((r) => (
                   <li key={r}>
                     <button
