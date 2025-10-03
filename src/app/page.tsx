@@ -144,7 +144,7 @@ export default function HomeMobileFirst() {
       </section>
 
       {/* === Nearby Shops === */}
-      <section className="my-4">
+      <section className="mt-3 mb-10">
         <div className="flex items-baseline justify-between px-2">
           <h2 className="text-lg font-bold">Nearby Shops</h2>
           {geo && (
@@ -171,7 +171,7 @@ export default function HomeMobileFirst() {
       </section>
 
       {/* === Map (Google Maps) === */}
-      <section className="my-4">
+      <section className="mt-3 mb-10">
         <div className="flex items-baseline justify-between px-2">
           <h2 className="text-lg font-bold">Search by GooGle Map</h2>
         </div>
