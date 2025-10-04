@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { X } from "lucide-react";
 import Carousel from "@/components/Carousel";
 import type { Shop } from "@/lib/types";
@@ -144,6 +145,13 @@ export default function ShopModal({
           >
             Open Google Map
           </a>
+
+          <Link
+              href={`/shops/${shop.id}`}
+              className="mt-3 block text-center rounded-xl border border-pink-600 text-pink-600 py-3 font-semibold hover:bg-pink-50"
+            >
+            View Store Details  
+          </Link>
 
           {/* Rating & Price */}
           <div className="mt-3 space-y-1 text-sm">

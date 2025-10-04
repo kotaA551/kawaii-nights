@@ -195,6 +195,14 @@ export default function HomeMobileFirst() {
       {selectedShop && (
         <ShopModal shop={selectedShop} onClose={() => setSelectedId(null)} />
       )}
+
+      <footer className="mt-10 border-t border-zinc-200 py-6 text-center text-sm text-zinc-500">
+        <a href="/about" className="mx-2 hover:underline">About</a> ·
+        <a href="/privacy" className="mx-2 hover:underline">Privacy Policy</a> ·
+        <a href="/terms" className="mx-2 hover:underline">Terms</a> ·
+        {/* <a href="/contact" className="mx-2 hover:underline">Contact</a> */}
+      </footer>
+
     </>
   );
 }
