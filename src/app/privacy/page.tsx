@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <h1 className="text-2xl font-bold mb-6">Privacy Policy</h1>
       <p className="mb-4">
         Kawaii Nights uses Google AdSense. Third-party vendors, including Google,
-        use cookies to serve ads based on a user's prior visits to this website
+        use cookies to serve ads based on a user&apos;s prior visits to this website
         or other websites.
       </p>
       <p className="mb-4">
