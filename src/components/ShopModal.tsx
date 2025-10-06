@@ -30,6 +30,9 @@ export default function ShopModal({
   const { photos } = usePlacePhotos(shop, { maxWidth: 1400, maxHeight: 900, maxCount: 8 });
   const googlePhotos = photos ?? [];
   const hasGoogle = googlePhotos.length > 0;
+  const gmapsUrl = shop.placeId
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.name)}&query_place_id=${shop.placeId}`
+  : `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`;
 
   // 背景スクロール固定
   useEffect(() => {
@@ -138,12 +141,12 @@ export default function ShopModal({
           {shop.hours && <p className="mt-1">{shop.hours}</p>}
 
           <a
-            href={`https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`}
+            href={gmapsUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 block text-center rounded-xl bg-pink-600 text-white py-3 font-semibold"
           >
-            Open Google Map
+            Open in Google Maps
           </a>
 
           <Link
