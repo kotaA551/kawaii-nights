@@ -149,12 +149,12 @@ export default function ShopModal({
             Open in Google Maps
           </a>
 
-          <Link
+          {/* <Link
               href={`/shops/${shop.id}`}
               className="mt-3 block text-center rounded-xl border border-pink-600 text-pink-600 py-3 font-semibold hover:bg-pink-50"
             >
             View Store Details  
-          </Link>
+          </Link> */}
 
           {/* Rating & Price */}
           <div className="mt-3 space-y-1 text-sm">
