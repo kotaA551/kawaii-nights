@@ -8,19 +8,12 @@ export type RegionKey =
   | "tokyo"
   | "osaka"
   | "kyoto"
-  | "fukuoka"
-  | "nagoya"
-  | "sendai"
-  | "sapporo";
 
 const LABELS: Record<RegionKey, string> = {
   tokyo: "Tokyo",
   osaka: "Osaka",
   kyoto: "Kyoto",
-  fukuoka: "Fukuoka",
-  nagoya: "Nagoya",
-  sendai: "Sendai",
-  sapporo: "Sapporo",
+
 };
 
 export default function RegionTabs({
@@ -38,10 +31,7 @@ export default function RegionTabs({
     "tokyo",
     "osaka",
     "kyoto",
-    "fukuoka",
-    "nagoya",
-    "sendai",
-    "sapporo",
+
   ];
 
   const handlePick = (r: RegionKey) => {
